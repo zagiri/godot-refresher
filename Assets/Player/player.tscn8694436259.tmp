@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://cps4dh3kjo074"]
+
+[ext_resource type="Script" uid="uid://baexyjc8wcptl" path="res://Assets/Player/player.gd" id="1_8ft5u"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xrivr"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_xrivr"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_61lih"]
+
+[node name="Player" type="CharacterBody3D" unique_id=27530027]
+script = ExtResource("1_8ft5u")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=534589643]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_xrivr")
+
+[node name="PlayerSkin" type="MeshInstance3D" parent="." unique_id=1213317427]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_xrivr")
+
+[node name="CameraPivot" type="Node3D" parent="." unique_id=2123842690]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.87173265, 0.48998186, 0, -0.48998186, 0.87173265, 0, 1.6071637, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=221892747]
+shape = SubResource("SphereShape3D_61lih")
+spring_length = 8.0
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=13657293]
+unique_name_in_owner = true
