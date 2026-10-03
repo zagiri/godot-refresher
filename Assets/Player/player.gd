@@ -94,7 +94,6 @@ func _physics_process(delta: float) -> void:
 	var is_starting_jump := Input.is_action_just_pressed("ui_accept") and is_on_floor()
 	if is_starting_jump:
 		velocity.y += jump_impulse
-	
 	move_and_slide()
 
 
