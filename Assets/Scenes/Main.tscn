@@ -33,6 +33,7 @@ shape = SubResource("ConcavePolygonShape3D_kwblh")
 transform = Transform3D(0.9124676, 0, -0.40914893, 0, 1, 0, 0.40914893, 0, 0.9124676, 2.048919, 2.013454, 0)
 
 [node name="Environment" parent="." unique_id=1113474916 instance=ExtResource("2_wkehv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 3, -2)
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1199624357]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, -4)
