@@ -18,12 +18,27 @@ extends CharacterBody3D
 @onready var _camera_pivot: Node3D = %CameraPivot
 @onready var _camera: Camera3D = %Camera3D
 @onready var _camera_pan: SpringArm3D = %SpringArm3D
-@onready var _skin: MeshInstance3D = %PlayerSkin
+@onready var _skin: Node3D = %PlayerSkin
 
 var _camera_input_direction := Vector2.ZERO
 var _last_movement_direction := Vector3.BACK
 var _gravity := -30.0
 
+
+func _enter_tree() -> void:
+	set_multiplayer_authority(name.to_int())
+
+
+func _ready() -> void:
+	var is_local_player := is_multiplayer_authority()
+
+	set_process_input(is_local_player)
+	set_process_unhandled_input(is_local_player)
+
+	if is_local_player:
+		_camera.make_current()
+	else:
+		_camera.current = false
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("right_click"):
@@ -51,6 +66,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	
+	if not is_multiplayer_authority():
+		return
 	
 	_camera_pivot.rotation.x -= _camera_input_direction.y * delta
 	_camera_pivot.rotation.x = clamp(

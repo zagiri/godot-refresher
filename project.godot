@@ -15,6 +15,10 @@ run/main_scene="uid://bf4en50pj4j6a"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+Networking="*uid://d1flummgxxroe"
+
 [display]
 
 window/stretch/mode="canvas_items"
@@ -75,6 +79,11 @@ scroll_down={
 ]
 }
 
+[layer_names]
+
+3d_physics/layer_1="World"
+3d_physics/layer_2="Players"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
@@ -82,3 +91,11 @@ scroll_down={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+
+[steam]
+
+initialization/app_data/app_id=480
+initialization/processes/initialize_on_startup=true
+initialization/app_data/demo_id=480
+initialization/app_data/playtest_id=480
+initialization/app_data/tool_id=480

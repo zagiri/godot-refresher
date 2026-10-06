@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bf4en50pj4j6a"]
 
-[ext_resource type="PackedScene" uid="uid://cps4dh3kjo074" path="res://Assets/Player/player.tscn" id="1_kwblh"]
+[ext_resource type="Script" uid="uid://ca7nwpnuka0kq" path="res://Assets/Scenes/main.gd" id="1_ygaiq"]
 [ext_resource type="PackedScene" uid="uid://cuqecmqlocj5v" path="res://Assets/Scenes/environment.tscn" id="2_wkehv"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_xrivr"]
@@ -18,6 +18,7 @@ left_to_right = 1.0
 data = PackedVector3Array(0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5)
 
 [node name="Main" type="Node3D" unique_id=1085538965]
+script = ExtResource("1_ygaiq")
 
 [node name="Ground" type="StaticBody3D" parent="." unique_id=662019669]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00095796585, -0.0036568642, 0.0017533302)
@@ -28,9 +29,6 @@ mesh = SubResource("PlaneMesh_xrivr")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=727808374]
 shape = SubResource("ConcavePolygonShape3D_kwblh")
-
-[node name="Player" parent="." unique_id=27530027 instance=ExtResource("1_kwblh")]
-transform = Transform3D(0.9124676, 0, -0.40914893, 0, 1, 0, 0.40914893, 0, 0.9124676, 2.048919, 2.013454, 0)
 
 [node name="Environment" parent="." unique_id=1113474916 instance=ExtResource("2_wkehv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 3, -2)
@@ -45,3 +43,19 @@ mesh = SubResource("PrismMesh_xrivr")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1004772295]
 transform = Transform3D(3.445527, 0, 0, 0, 3.445527, 0, 0, 0, 3.445527, 0, 0, 0)
 shape = SubResource("ConcavePolygonShape3D_wkehv")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1322925844]
+
+[node name="Host" type="Button" parent="CanvasLayer" unique_id=759972292]
+offset_right = 8.0
+offset_bottom = 8.0
+text = "Host"
+
+[node name="SpawnPoint" type="Node3D" parent="." unique_id=685197651]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1233702619]
+_spawnable_scenes = PackedStringArray("uid://cps4dh3kjo074")
+spawn_path = NodePath("..")
+
+[connection signal="pressed" from="CanvasLayer/Host" to="." method="_on_host_pressed"]

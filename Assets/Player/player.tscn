@@ -1,29 +1,31 @@
 [gd_scene format=3 uid="uid://cps4dh3kjo074"]
 
 [ext_resource type="Script" uid="uid://baexyjc8wcptl" path="res://Assets/Player/player.gd" id="1_8ft5u"]
-[ext_resource type="Texture2D" uid="uid://bbbubj61ex26k" path="res://icon.svg" id="2_6miq6"]
+[ext_resource type="PackedScene" uid="uid://ctupji75fuqou" path="res://Assets/Player/Character/Character.glb" id="2_8ft5u"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xrivr"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_61lih"]
-albedo_texture = ExtResource("2_6miq6")
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_xrivr"]
-
 [sub_resource type="SphereShape3D" id="SphereShape3D_61lih"]
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_6miq6"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath("PlayerSkin:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
 [node name="Player" type="CharacterBody3D" unique_id=27530027]
+collision_layer = 2
 script = ExtResource("1_8ft5u")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=534589643]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_xrivr")
 
-[node name="PlayerSkin" type="MeshInstance3D" parent="." unique_id=1213317427]
+[node name="PlayerSkin" parent="." unique_id=1861149949 instance=ExtResource("2_8ft5u")]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-material_override = SubResource("StandardMaterial3D_61lih")
-mesh = SubResource("CapsuleMesh_xrivr")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=2123842690]
 unique_name_in_owner = true
@@ -36,3 +38,6 @@ spring_length = 0.0
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=13657293]
 unique_name_in_owner = true
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=956184061]
+replication_config = SubResource("SceneReplicationConfig_6miq6")

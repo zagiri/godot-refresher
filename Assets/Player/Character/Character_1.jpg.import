@@ -2,17 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c3vlm2yp5xhug"
-path.s3tc="res://.godot/imported/Character.png-b3350b92504340b525d9182c983af2b0.s3tc.ctex"
+uid="uid://p1x2fk56d6ri"
+path.s3tc="res://.godot/imported/Character_1.jpg-ccd5dffad0d80150b14b227301cf125b.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
+generator_parameters={
+"md5": "38885a09203c8c0137bcbfb58030f376"
+}
 
 [deps]
 
-source_file="res://Assets/Arts/Character.png"
-dest_files=["res://.godot/imported/Character.png-b3350b92504340b525d9182c983af2b0.s3tc.ctex"]
+source_file="res://Assets/Player/Character/Character_1.jpg"
+dest_files=["res://.godot/imported/Character_1.jpg-ccd5dffad0d80150b14b227301cf125b.s3tc.ctex"]
 
 [params]
 
