@@ -8,7 +8,7 @@ enum CameraState {
 }
 
 
-# Camera variables
+# Camera settings
 @export_group("Camera")
 @export_range(0.0, 1.0) var mouse_sensitivty := 0.25
 @export_range(0.0, 1.0) var zoom_amount := 0.50
@@ -19,7 +19,7 @@ enum CameraState {
 @export var first_person_threshold := 0.5
 
 
-# Movement variables
+# Movement settings
 @export_group("Movement")
 @export var move_speed := 8.0
 @export var acceleration := 20.0
@@ -27,12 +27,12 @@ enum CameraState {
 @export var jump_impulse := 12.0
 
 
-# Interaction variables
+# Interaction settings
 @export_group("Interaction")
 @export var interaction_range := 2.5
 
 
-# Unique nodes
+# Node references
 @onready var _camera_pivot: Node3D = %CameraPivot
 @onready var _camera: Camera3D = %Camera3D
 @onready var _camera_pan: SpringArm3D = %SpringArm3D
@@ -40,22 +40,24 @@ enum CameraState {
 @onready var _interaction_ray: RayCast3D = %InteractionRay
 
 
-# Direction and movement
+# Movement data
 var _camera_input_direction := Vector2.ZERO
 var _last_movement_direction := Vector3.BACK
 var _gravity := -30.0
 
 
-# Camera state
+# Camera state data
 var _camera_state := CameraState.THIRD_PERSON
 var _third_person_camera_dragging := false
 var _third_person_mouse_position := Vector2.ZERO
 
 
+# Set multiplayer ownership using the player's peer ID
 func _enter_tree() -> void:
 	set_multiplayer_authority(name.to_int())
 
 
+# Set up local camera, input and interaction
 func _ready() -> void:
 	var is_local_player := is_multiplayer_authority()
 
@@ -73,6 +75,7 @@ func _ready() -> void:
 		_camera.current = false
 
 
+# Handle mouse buttons and camera zoom
 func _input(event: InputEvent) -> void:
 	if not is_multiplayer_authority():
 		return
@@ -106,6 +109,7 @@ func _input(event: InputEvent) -> void:
 			_update_camera_state()
 
 
+# Handle mouse movement and interactions
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority():
 		return
@@ -119,6 +123,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		test_interaction()
 
 
+# Main player update
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority():
 		return
@@ -133,6 +138,7 @@ func _physics_process(delta: float) -> void:
 	_update_interaction_ray()
 
 
+# Decide which camera state should be active
 func _update_camera_state() -> void:
 	if camera_distance <= first_person_threshold:
 		_change_camera_state(CameraState.FIRST_PERSON)
@@ -140,6 +146,7 @@ func _update_camera_state() -> void:
 		_change_camera_state(CameraState.THIRD_PERSON)
 
 
+# Switch from one camera state to another
 func _change_camera_state(new_state: CameraState) -> void:
 	if new_state == _camera_state:
 		return
@@ -149,6 +156,7 @@ func _change_camera_state(new_state: CameraState) -> void:
 	_enter_camera_state(_camera_state)
 
 
+# Apply settings when entering a camera state
 func _enter_camera_state(state: CameraState) -> void:
 	match state:
 		CameraState.THIRD_PERSON:
@@ -162,6 +170,7 @@ func _enter_camera_state(state: CameraState) -> void:
 			_skin.visible = false
 
 
+# Clean up settings when leaving a camera state
 func _exit_camera_state(state: CameraState) -> void:
 	match state:
 		CameraState.THIRD_PERSON:
@@ -171,6 +180,7 @@ func _exit_camera_state(state: CameraState) -> void:
 			pass
 
 
+# Rotate the camera from mouse movement
 func _update_camera_rotation(delta: float) -> void:
 	_camera_pivot.rotation.x += _camera_input_direction.y * delta
 	_camera_pivot.rotation.x = clamp(_camera_pivot.rotation.x, -PI / 6.0, PI / 3.0)
@@ -179,11 +189,13 @@ func _update_camera_rotation(delta: float) -> void:
 	_camera_input_direction = Vector2.ZERO
 
 
+# Smoothly move the camera toward the requested zoom distance
 func _update_camera_zoom(delta: float) -> void:
 	var zoom_weight := 1.0 - exp(-zoom_speed * delta)
 	_camera_pan.spring_length = lerp(_camera_pan.spring_length, camera_distance, zoom_weight)
 
 
+# Get movement direction relative to the camera
 func _get_move_direction() -> Vector3:
 	var raw_input := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 
@@ -196,6 +208,7 @@ func _get_move_direction() -> Vector3:
 	return move_direction.normalized()
 
 
+# Apply movement, gravity and jumping
 func _update_movement(move_direction: Vector3, delta: float) -> void:
 	var y_velocity := velocity.y
 
@@ -211,12 +224,15 @@ func _update_movement(move_direction: Vector3, delta: float) -> void:
 	move_and_slide()
 
 
+# Rotate the character depending on the camera state
 func _update_character_rotation(move_direction: Vector3, delta: float) -> void:
 	match _camera_state:
 		CameraState.FIRST_PERSON:
+			# Face the same horizontal direction as the camera
 			_skin.rotation.y = _camera_pivot.rotation.y
 
 		CameraState.THIRD_PERSON:
+			# Keep the previous direction while standing still
 			if move_direction.length() <= 0.2:
 				return
 
@@ -226,23 +242,28 @@ func _update_character_rotation(move_direction: Vector3, delta: float) -> void:
 			_skin.rotation.y = lerp_angle(_skin.rotation.y, target_angle, rotation_speed * delta)
 
 
+# Aim the interaction ray based on the current camera state
 func _update_interaction_ray() -> void:
 	match _camera_state:
 		CameraState.FIRST_PERSON:
-			# First person follows the camera
+			# Follow exactly where the camera is looking
 			_interaction_ray.global_basis = _camera.global_basis
 
 		CameraState.THIRD_PERSON:
-			# Third person follows the character
+			# Follow where the character is facing
 			_interaction_ray.global_rotation = Vector3(0.0, _skin.global_rotation.y + PI, 0.0)
 
 	_interaction_ray.target_position = Vector3(0.0, 0.0, -interaction_range)
 	_interaction_ray.force_raycast_update()
 
 
+# Temporary interaction test
 func test_interaction() -> void:
-	if _interaction_ray.is_colliding():
-		var collider := _interaction_ray.get_collider()
-		print("Interacting with: ", collider.name)
-	else:
+	if not _interaction_ray.is_colliding():
 		print("Nothing in range")
+		return
+
+	var collider := _interaction_ray.get_collider()
+
+	if collider is Interactable:
+		collider.interact(self)
