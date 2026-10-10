@@ -60,6 +60,6 @@ _spawnable_scenes = PackedStringArray("uid://cps4dh3kjo074")
 spawn_path = NodePath("..")
 
 [node name="Fryer" parent="." unique_id=352370809 instance=ExtResource("4_2qpql")]
-transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, -0.45940757, -7.440049)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45940757, -7.440049)
 
 [connection signal="pressed" from="CanvasLayer/Host" to="." method="_on_host_pressed"]

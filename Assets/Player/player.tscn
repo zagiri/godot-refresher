@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://cps4dh3kjo074"]
 
 [ext_resource type="Script" uid="uid://baexyjc8wcptl" path="res://Assets/Player/player.gd" id="1_8ft5u"]
-[ext_resource type="PackedScene" uid="uid://ctupji75fuqou" path="res://Assets/Player/Character/Character.glb" id="2_8ft5u"]
+[ext_resource type="PackedScene" uid="uid://clbbu83oqcwbf" path="res://Assets/Player/Character/playerSkin.tscn" id="2_6miq6"]
+[ext_resource type="PackedScene" uid="uid://dhds22gg5tibf" path="res://Assets/Scenes/interaction_ui.tscn" id="3_8ft5u"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xrivr"]
 
@@ -23,20 +24,55 @@ script = ExtResource("1_8ft5u")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_xrivr")
 
-[node name="PlayerSkin" parent="." unique_id=1861149949 instance=ExtResource("2_8ft5u")]
+[node name="PlayerSkin" parent="." unique_id=1270682691 instance=ExtResource("2_6miq6")]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="Skeleton3D" parent="PlayerSkin/target_character" parent_id_path=PackedInt32Array(1270682691, 2094811867) index="0" unique_id=644158213]
+bones/0/position = Vector3(0.0072131343, 0.6139382, -0.028498067)
+bones/0/rotation = Quaternion(-0.024619544, 0.009634584, -0.0016022364, 0.9996492)
+bones/1/rotation = Quaternion(-0.009660469, 0.0047622207, 0.011307727, 0.99987805)
+bones/2/rotation = Quaternion(-0.048209503, -0.01995255, -0.008988795, 0.99859756)
+bones/3/rotation = Quaternion(0.16836499, 0.006008733, -0.012530938, 0.9856268)
+bones/4/rotation = Quaternion(-0.023791468, 0.0012756096, 0.009862196, 0.99966747)
+bones/5/rotation = Quaternion(-0.0119329365, -0.0040904405, -0.0036037934, 0.99991393)
+bones/8/rotation = Quaternion(0.7739646, 0.3838072, 0.18254535, -0.46941248)
+bones/9/rotation = Quaternion(-0.4040082, 0.6823446, -0.3752875, 0.4799401)
+bones/10/rotation = Quaternion(0.20118077, -0.15264043, -0.13431586, 0.9582205)
+bones/11/rotation = Quaternion(0.0034941991, 0.125727, -0.0010518765, 0.99205816)
+bones/13/rotation = Quaternion(0.04761302, 0.85735965, -0.2939624, 0.4198255)
+bones/14/rotation = Quaternion(0.33541742, -0.05280294, -0.09645357, 0.9356301)
+bones/15/rotation = Quaternion(0.15586765, 0.37922993, 0.078423604, 0.9087023)
+bones/16/rotation = Quaternion(0.00037125198, 0.0064583626, -0.0005431572, 0.9999789)
+bones/17/rotation = Quaternion(-0.7585288, 0.36114156, 0.33579168, 0.42597514)
+bones/18/rotation = Quaternion(-0.38686544, -0.5951278, 0.24758811, 0.65943784)
+bones/19/rotation = Quaternion(0.1706307, 0.08488201, 0.20814411, 0.9593521)
+bones/20/rotation = Quaternion(-0.038473345, -0.0016864208, -0.028135203, 0.998862)
+bones/21/rotation = Quaternion(-0.011043914, 0.88235664, -0.018838784, -0.47007433)
+bones/22/rotation = Quaternion(0.017864222, 0.8616907, -0.27106267, -0.42859656)
+bones/23/rotation = Quaternion(0.30908507, 0.052803274, 0.16209635, 0.9356298)
+bones/24/rotation = Quaternion(0.17289467, 0.0028151046, 0.023493413, 0.98465604)
+bones/25/rotation = Quaternion(0.0005677778, -0.0373593, -0.001607689, 0.9993004)
+bones/26/rotation = Quaternion(0.97529566, 0.09193984, 0.17878057, 0.091558784)
+bones/27/rotation = Quaternion(0.18775065, -0.13366506, 0.07719469, 0.97001255)
+bones/28/rotation = Quaternion(-0.5753718, -0.06723042, -0.013226798, 0.8150168)
+bones/29/rotation = Quaternion(-0.10107501, 0.9207825, -0.222992, 0.30367437)
+bones/30/rotation = Quaternion(-0.0019734667, -0.54137707, 0.008696149, 0.84073263)
+bones/31/rotation = Quaternion(0.96062416, -0.060104877, -0.27090842, -0.014045697)
+bones/32/rotation = Quaternion(0.15980972, 0.11463456, -0.06949887, 0.9780029)
+bones/33/rotation = Quaternion(-0.60244316, 0.056221783, 0.05260286, 0.7944396)
+bones/34/rotation = Quaternion(0.12770326, 0.8455471, -0.34915623, -0.3831864)
+bones/35/rotation = Quaternion(-0.0019929141, 0.5293171, -0.009161181, 0.8483723)
 
 [node name="InteractionRay" type="RayCast3D" parent="." unique_id=516389180]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 target_position = Vector3(0, 0, 2.5)
 collision_mask = 4
 collide_with_areas = true
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=2123842690]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=221892747]
 unique_name_in_owner = true
@@ -49,3 +85,9 @@ unique_name_in_owner = true
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=956184061]
 replication_config = SubResource("SceneReplicationConfig_6miq6")
+
+[node name="PlayerUI" type="CanvasLayer" parent="." unique_id=2680760]
+
+[node name="InteractionUI" parent="PlayerUI" unique_id=302247585 instance=ExtResource("3_8ft5u")]
+
+[editable path="PlayerSkin"]

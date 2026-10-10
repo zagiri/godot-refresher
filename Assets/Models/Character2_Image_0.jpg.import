@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bi5fsyoky4stg"
-path.s3tc="res://.godot/imported/Character_2.jpg-fd25d27d90175e96a9c8a299a72310b9.s3tc.ctex"
+uid="uid://dql5jj7mg8q21"
+path.s3tc="res://.godot/imported/Character2_Image_0.jpg-be3f37a6a71363273baa279c65f27716.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "398f66271be23aec1205ee94c73ba081"
+"md5": "6f0963d64b0fca820c04a14abbbe0938"
 }
 
 [deps]
 
-source_file="res://Assets/Player/Character/Character_2.jpg"
-dest_files=["res://.godot/imported/Character_2.jpg-fd25d27d90175e96a9c8a299a72310b9.s3tc.ctex"]
+source_file="res://Assets/Models/Character2_Image_0.jpg"
+dest_files=["res://.godot/imported/Character2_Image_0.jpg-be3f37a6a71363273baa279c65f27716.s3tc.ctex"]
 
 [params]
 
@@ -25,12 +25,12 @@ compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/normal_map=1
+compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1
-roughness/mode=1
-roughness/src_normal="res://Assets/Player/Character/Character_2.jpg"
+roughness/mode=0
+roughness/src_normal=""
 process/channel_remap/red=0
 process/channel_remap/green=1
 process/channel_remap/blue=2

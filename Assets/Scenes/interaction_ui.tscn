@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://dhds22gg5tibf"]
+
+[ext_resource type="Script" uid="uid://xt43btlbfjev" path="res://Assets/Scripts/interaction_ui.gd" id="1_jog7d"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a1txv"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.16078432, 0.18039216, 0.21960784, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xrivr"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+bg_color = Color(0.25490198, 0.28627452, 0.33333334, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="InteractionUI" type="Control" unique_id=302247585]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_jog7d")
+
+[node name="PromptPanel" type="PanelContainer" parent="." unique_id=1900486502]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -32.0
+offset_top = -49.0
+offset_right = 32.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_a1txv")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PromptPanel" unique_id=1994303496]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="KeyPanel" type="PanelContainer" parent="PromptPanel/HBoxContainer" unique_id=431396017]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_xrivr")
+
+[node name="KeyLabel" type="Label" parent="PromptPanel/HBoxContainer/KeyPanel" unique_id=774848967]
+layout_mode = 2
+text = "E"
+
+[node name="ActionLabel" type="Label" parent="PromptPanel/HBoxContainer" unique_id=1616507505]
+layout_mode = 2

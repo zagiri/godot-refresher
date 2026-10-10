@@ -1,11 +1,24 @@
+
 class_name Interactable
 extends Area3D
 
 
-# Text we can show on-screen later
-@export var interaction_text := "Interact"
+signal interacted(player: Node)
 
 
-# Called by the player when they interact with this object
+@export var interaction_action := "Use"
+
+
+# Automatically get the owning object's name
+func get_interaction_text() -> String:
+	var parent := get_parent()
+
+	if parent == null:
+		return interaction_action
+
+	return interaction_action + " " + parent.name
+
+
+# Forward the interaction to the owning equipment
 func interact(player: Node) -> void:
-	print(player.name, " interacted with ", name)
+	interacted.emit(player)

@@ -1,17 +1,18 @@
 [gd_scene format=3 uid="uid://t54jgghiavj1"]
 
 [ext_resource type="PackedScene" uid="uid://4cda7wrqdk06" path="res://Assets/Models/Fryer.glb" id="1_h1chr"]
+[ext_resource type="Script" uid="uid://8p5hw45mpth7" path="res://Assets/Scripts/fryer.gd" id="2_a1txv"]
 [ext_resource type="PackedScene" uid="uid://drintcipmsay8" path="res://Assets/Scenes/interactableBase.tscn" id="2_iur38"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xrivr"]
 
 [node name="Fryer" unique_id=352370809 instance=ExtResource("1_h1chr")]
+script = ExtResource("2_a1txv")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=2049486614]
-transform = Transform3D(1.8344741, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 1.2448397, 0)
+transform = Transform3D(1.775, 0, 0, 0, 1.775, 0, 0, 0, 1.775, 0, 1.2448397, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=1900840660]
-transform = Transform3D(1, 0, 0, 0, 0.9999999, 0, 0, 0, 0.87898743, 0, 0, 0)
 shape = SubResource("BoxShape3D_xrivr")
 
 [node name="Mesh" parent="." index="1" unique_id=133977652]
@@ -21,6 +22,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 1.5956999, 0)
 
 [node name="Area3D" parent="InteractableBase" index="0" unique_id=1476203914]
-transform = Transform3D(1.15, 0, 0, 0, 1.15, 0, 0, 0, 0.67519253, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
 [editable path="InteractableBase"]
