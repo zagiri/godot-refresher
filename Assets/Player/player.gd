@@ -102,6 +102,7 @@ func _ready() -> void:
 
 	_setup_animations()
 	_play_animation(&"Anim/Idle")
+	add_to_group("players")
 
 
 # Mouse input and camera zoom

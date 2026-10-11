@@ -13,6 +13,16 @@ func _ready() -> void:
 	Steam.lobby_created.connect(on_lobby_created)
 	Steam.lobby_joined.connect(on_lobby_joined)
 	Steam.join_requested.connect(on_join_requested)
+	
+	multiplayer.peer_connected.connect(
+	func(id: int) -> void:
+		print(
+			"PEER CONNECTED | Local: ",
+			multiplayer.get_unique_id(),
+			" | New peer: ",
+			id
+		)
+)
 
 func _process(_delta: float) -> void:
 	Steam.run_callbacks()

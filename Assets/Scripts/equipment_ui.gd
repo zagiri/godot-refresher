@@ -14,7 +14,7 @@ extends Node3D
 # Positioning
 @export_group("Positioning")
 @export var height_offset := 0.15
-@export var panel_gap := 0.08
+@export var panel_gap := 0.0
 @export var follow_speed := 12.0
 
 
@@ -29,6 +29,8 @@ extends Node3D
 @onready var _status_viewport: SubViewport = $StatusViewport
 @onready var _prompt_sprite: Sprite3D = $PromptDisplay
 @onready var _prompt_viewport: SubViewport = $PromptViewport
+@onready var _status_panel: Control = $StatusViewport/UIPanel/PanelContainer
+
 
 
 # Status UI references
@@ -39,6 +41,7 @@ extends Node3D
 @onready var _prompt_panel: Control = $PromptViewport/InteractionUI/PromptPanel
 @onready var _key_label: Label = $PromptViewport/InteractionUI/PromptPanel/HBoxContainer/KeyPanel/KeyLabel
 @onready var _action_label: Label = $PromptViewport/InteractionUI/PromptPanel/HBoxContainer/ActionLabel
+
 
 #Animation On interact
 @export_group("Interaction Animation")
@@ -252,37 +255,37 @@ func _update_panel_scale() -> void:
 
 
 # Automatically stack panels above equipment
+
 func _update_panel_positions(delta: float) -> void:
+	# Measure the actual visible panels
 	var status_height: float = (
-		_status_viewport.size.y
+		_status_panel.size.y
 		* _status_sprite.pixel_size
 		* _status_sprite.scale.y
 	)
 
 	var prompt_height: float = (
-		_prompt_viewport.size.y
+		_prompt_panel.size.y
 		* _prompt_sprite.pixel_size
 		* _prompt_sprite.scale.y
 	)
 
-	var prompt_visible_height: float = (
-		prompt_height if _prompt_alpha > 0.01 else 0.0
-	)
-
-	var status_visible_height: float = (
-		status_height if _status_alpha > 0.01 else 0.0
-	)
-
 	var base_y: float = _equipment_top.y + height_offset
 
-	var prompt_target_y: float = base_y + prompt_height * 0.5
-	var status_target_y: float = base_y + status_height * 0.5
+	# Prompt sits closest to the equipment
+	var prompt_target_y: float = (
+		base_y + prompt_height * 0.5
+	)
 
-	status_target_y += (
-		prompt_height + panel_gap
-	) * _prompt_alpha
+	# Status sits above the prompt
+	var status_target_y: float = (
+		base_y + status_height * 0.5
+		+ (prompt_height + panel_gap) * _prompt_alpha
+	)
 
-	var weight: float = 1.0 - exp(-maxf(follow_speed, 0.0) * delta)
+	var weight: float = 1.0 - exp(
+		-maxf(follow_speed, 0.0) * delta
+	)
 
 	_prompt_sprite.global_position = _prompt_sprite.global_position.lerp(
 		Vector3(_equipment_top.x, prompt_target_y, _equipment_top.z),
