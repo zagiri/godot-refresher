@@ -2,11 +2,12 @@
 
 [ext_resource type="Script" uid="uid://baexyjc8wcptl" path="res://Assets/Player/player.gd" id="1_8ft5u"]
 [ext_resource type="PackedScene" uid="uid://clbbu83oqcwbf" path="res://Assets/Player/Character/playerSkin.tscn" id="2_6miq6"]
-[ext_resource type="PackedScene" uid="uid://dhds22gg5tibf" path="res://Assets/Scenes/interaction_ui.tscn" id="3_8ft5u"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xrivr"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_61lih"]
+margin = 0.15
+radius = 0.25
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_6miq6"]
 properties/0/path = NodePath(".:position")
@@ -15,6 +16,9 @@ properties/0/replication_mode = 1
 properties/1/path = NodePath("PlayerSkin:rotation")
 properties/1/spawn = true
 properties/1/replication_mode = 1
+properties/2/path = NodePath("PlayerSkin/AnimationPlayer:current_animation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
 
 [node name="Player" type="CharacterBody3D" unique_id=27530027]
 collision_layer = 2
@@ -86,8 +90,27 @@ unique_name_in_owner = true
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=956184061]
 replication_config = SubResource("SceneReplicationConfig_6miq6")
 
-[node name="PlayerUI" type="CanvasLayer" parent="." unique_id=2680760]
+[node name="PlayerHUD" type="CanvasLayer" parent="." unique_id=2680760]
 
-[node name="InteractionUI" parent="PlayerUI" unique_id=302247585 instance=ExtResource("3_8ft5u")]
+[node name="CenterContainer" type="Control" parent="PlayerHUD" unique_id=1698693839]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Crosshair" type="Label" parent="PlayerHUD/CenterContainer" unique_id=2091821817]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 32
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [editable path="PlayerSkin"]

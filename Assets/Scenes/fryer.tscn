@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://4cda7wrqdk06" path="res://Assets/Models/Fryer.glb" id="1_h1chr"]
 [ext_resource type="Script" uid="uid://8p5hw45mpth7" path="res://Assets/Scripts/fryer.gd" id="2_a1txv"]
 [ext_resource type="PackedScene" uid="uid://drintcipmsay8" path="res://Assets/Scenes/interactableBase.tscn" id="2_iur38"]
+[ext_resource type="PackedScene" uid="uid://cwnrkkiqmdicq" path="res://Assets/Scenes/equipment_ui.tscn" id="6_cu3nw"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xrivr"]
 
@@ -23,5 +24,13 @@ transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 1.5956999, 0)
 
 [node name="Area3D" parent="InteractableBase" index="0" unique_id=1476203914]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="InteractionWorldUI" parent="InteractableBase" index="1" unique_id=1356911889]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.21913594, 0)
+min_scale = 0.3
+max_scale = 0.5
+
+[node name="EquipmentUI" parent="." index="3" unique_id=1293692385 instance=ExtResource("6_cu3nw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8699665, 0)
 
 [editable path="InteractableBase"]

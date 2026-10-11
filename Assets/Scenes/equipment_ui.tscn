@@ -1,0 +1,175 @@
+[gd_scene format=3 uid="uid://cwnrkkiqmdicq"]
+
+[ext_resource type="Script" uid="uid://bqioq81n4jqbj" path="res://Assets/Scripts/equipment_ui.gd" id="1_t8thn"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_de83g"]
+viewport_path = NodePath("StatusViewport")
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_4fya4"]
+viewport_path = NodePath("PromptViewport")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t8thn"]
+bg_color = Color(0.16078432, 0.18039216, 0.21960784, 1)
+border_width_left = 12
+border_width_top = 12
+border_width_right = 12
+border_width_bottom = 12
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_85sx1"]
+bg_color = Color(0.26666668, 0.29411766, 0.33333334, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_de83g"]
+bg_color = Color(0.96862745, 0.7254902, 0.33333334, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a1txv"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.16078432, 0.18039216, 0.21960784, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xrivr"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+bg_color = Color(0.25490198, 0.28627452, 0.33333334, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="EquipmentUI" type="Node3D" unique_id=1293692385]
+script = ExtResource("1_t8thn")
+
+[node name="StatusDisplay" type="Sprite3D" parent="." unique_id=1692310563]
+pixel_size = 0.008
+billboard = 1
+shaded = true
+texture = SubResource("ViewportTexture_de83g")
+
+[node name="PromptDisplay" type="Sprite3D" parent="." unique_id=70655613]
+pixel_size = 0.008
+billboard = 1
+shaded = true
+texture = SubResource("ViewportTexture_4fya4")
+
+[node name="StatusViewport" type="SubViewport" parent="." unique_id=833508319]
+transparent_bg = true
+size = Vector2i(300, 160)
+render_target_update_mode = 4
+
+[node name="UIPanel" type="Control" parent="StatusViewport" unique_id=1266497909]
+custom_minimum_size = Vector2(300, 140)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="PanelContainer" type="PanelContainer" parent="StatusViewport/UIPanel" unique_id=2015658687]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_t8thn")
+
+[node name="MarginContainer" type="MarginContainer" parent="StatusViewport/UIPanel/PanelContainer" unique_id=903758420]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="StatusViewport/UIPanel/PanelContainer/MarginContainer" unique_id=102352257]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="StatusViewport/UIPanel/PanelContainer/MarginContainer/VBoxContainer" unique_id=301022199]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="StatusViewport/UIPanel/PanelContainer/MarginContainer/VBoxContainer/Header" unique_id=73135309]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+
+[node name="StatusLabel" type="Label" parent="StatusViewport/UIPanel/PanelContainer/MarginContainer/VBoxContainer/Header" unique_id=1459148399]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96862745, 0.7254902, 0.33333334, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="TimerLabel" type="Label" parent="StatusViewport/UIPanel/PanelContainer/MarginContainer/VBoxContainer" unique_id=1565212177]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="ProgressBar" type="ProgressBar" parent="StatusViewport/UIPanel/PanelContainer/MarginContainer/VBoxContainer" unique_id=232440103]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_85sx1")
+theme_override_styles/fill = SubResource("StyleBoxFlat_de83g")
+show_percentage = false
+
+[node name="PromptViewport" type="SubViewport" parent="." unique_id=315598166]
+transparent_bg = true
+size = Vector2i(260, 70)
+render_target_update_mode = 4
+
+[node name="InteractionUI" type="Control" parent="PromptViewport" unique_id=302247585]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PromptPanel" type="PanelContainer" parent="PromptViewport/InteractionUI" unique_id=1900486502]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -32.0
+offset_top = -49.0
+offset_right = 32.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_a1txv")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PromptViewport/InteractionUI/PromptPanel" unique_id=1994303496]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="KeyPanel" type="PanelContainer" parent="PromptViewport/InteractionUI/PromptPanel/HBoxContainer" unique_id=431396017]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_xrivr")
+
+[node name="KeyLabel" type="Label" parent="PromptViewport/InteractionUI/PromptPanel/HBoxContainer/KeyPanel" unique_id=774848967]
+layout_mode = 2
+text = "E"
+
+[node name="ActionLabel" type="Label" parent="PromptViewport/InteractionUI/PromptPanel/HBoxContainer" unique_id=1616507505]
+layout_mode = 2
