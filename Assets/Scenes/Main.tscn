@@ -45,13 +45,6 @@ mesh = SubResource("PrismMesh_xrivr")
 transform = Transform3D(3.445527, 0, 0, 0, 3.445527, 0, 0, 0, 3.445527, 0, 0, 0)
 shape = SubResource("ConcavePolygonShape3D_wkehv")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1322925844]
-
-[node name="Host" type="Button" parent="CanvasLayer" unique_id=759972292]
-offset_right = 8.0
-offset_bottom = 8.0
-text = "Host"
-
 [node name="SpawnPoint" type="Node3D" parent="." unique_id=685197651]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
 
@@ -61,5 +54,3 @@ spawn_path = NodePath("..")
 
 [node name="Fryer" parent="." unique_id=352370809 instance=ExtResource("4_2qpql")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45940757, -7.440049)
-
-[connection signal="pressed" from="CanvasLayer/Host" to="." method="_on_host_pressed"]

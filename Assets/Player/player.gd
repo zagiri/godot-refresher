@@ -42,6 +42,13 @@ enum CameraState {
 @export var animation_blend_time := 0.2
 @export var walking_animation_speed := 1.0
 @export var animation_speed_threshold := 0.15
+@export var running_speed_threshold := 4.0
+
+
+# Replicated animation properties
+# Add both to MultiplayerSynchronizer.
+@export var animation_state: String = "Anim/Idle"
+@export var animation_playback_speed: float = 1.0
 
 
 # Camera references
@@ -52,8 +59,10 @@ enum CameraState {
 @onready var _interaction_ray: RayCast3D = %InteractionRay
 @onready var _animation_player: AnimationPlayer = $PlayerSkin/AnimationPlayer
 
-#PlayerHUD references
+
+# HUD references
 @onready var _player_hud: CanvasLayer = $PlayerHUD
+
 
 # Movement data
 var _camera_input_direction := Vector2.ZERO
@@ -82,6 +91,7 @@ func _enter_tree() -> void:
 # Player initialization
 func _ready() -> void:
 	var is_local_player := is_multiplayer_authority()
+
 	_player_hud.visible = false
 
 	set_process_input(is_local_player)
@@ -102,6 +112,7 @@ func _ready() -> void:
 
 	_setup_animations()
 	_play_animation(&"Anim/Idle")
+
 	add_to_group("players")
 
 
@@ -178,14 +189,15 @@ func _physics_process(delta: float) -> void:
 	_update_interactable()
 
 
-# Camera visibility
+# Camera visibility and remote animation updates
 func _process(_delta: float) -> void:
-	if not is_multiplayer_authority():
-		return
+	if is_multiplayer_authority():
+		_update_player_visibility()
+	else:
+		_update_remote_animation()
 
-	_update_player_visibility()
 
-
+# Camera visibility
 func _update_player_visibility() -> void:
 	if _camera_state == CameraState.FIRST_PERSON:
 		_skin.visible = false
@@ -215,7 +227,6 @@ func _change_camera_state(new_state: CameraState) -> void:
 	_enter_camera_state(_camera_state)
 
 
-
 func _enter_camera_state(state: CameraState) -> void:
 	match state:
 		CameraState.THIRD_PERSON:
@@ -228,7 +239,6 @@ func _enter_camera_state(state: CameraState) -> void:
 			_skin.visible = false
 
 	_update_crosshair()
-
 
 
 func _exit_camera_state(state: CameraState) -> void:
@@ -269,7 +279,8 @@ func _update_camera_zoom(delta: float) -> void:
 		zoom_weight
 	)
 
-#Crosshair
+
+# Crosshair
 func _update_crosshair() -> void:
 	_player_hud.visible = (
 		is_multiplayer_authority()
@@ -376,7 +387,7 @@ func _update_character_rotation(
 			)
 
 
-# Animation setup
+# Configure looping animations
 func _setup_animations() -> void:
 	var animations: Array[StringName] = [
 		&"Anim/Idle",
@@ -393,7 +404,7 @@ func _setup_animations() -> void:
 			animation.loop_mode = Animation.LOOP_LINEAR
 
 
-# Play animation
+# Play animation without restarting the same animation
 func _play_animation(animation_name: StringName) -> void:
 	if _current_animation == animation_name:
 		return
@@ -412,29 +423,48 @@ func _play_animation(animation_name: StringName) -> void:
 	)
 
 
-# Update player animation
+# Local authority chooses animation and updates replicated state
 func _update_animation() -> void:
 	var horizontal_speed := Vector2(
 		velocity.x,
 		velocity.z
 	).length()
 
-	if horizontal_speed <= animation_speed_threshold:
-		_play_animation(&"Anim/Idle")
-		_animation_player.speed_scale = 1.0
-		return
+	var next_animation: StringName = &"Anim/Idle"
+	var next_speed := 1.0
 
-	_play_animation(&"Anim/Running")
+	if horizontal_speed > animation_speed_threshold:
+		if horizontal_speed < running_speed_threshold:
+			next_animation = &"Anim/Walking"
 
-	var speed_ratio: float = (
-		horizontal_speed / maxf(move_speed, 0.01)
-	)
+			next_speed = clampf(
+				horizontal_speed / maxf(running_speed_threshold, 0.01),
+				0.5,
+				1.5
+			) * walking_animation_speed
+		else:
+			next_animation = &"Anim/Running"
 
-	_animation_player.speed_scale = clampf(
-		speed_ratio * walking_animation_speed,
-		0.5,
-		1.5
-	)
+			next_speed = clampf(
+				horizontal_speed / maxf(move_speed, 0.01),
+				0.5,
+				1.5
+			) * walking_animation_speed
+
+	animation_state = str(next_animation)
+	animation_playback_speed = next_speed
+
+	_play_animation(next_animation)
+	_animation_player.speed_scale = next_speed
+
+
+# Remote players apply the synchronized animation state
+func _update_remote_animation() -> void:
+	var next_animation := StringName(animation_state)
+
+	_play_animation(next_animation)
+
+	_animation_player.speed_scale = animation_playback_speed
 
 
 # Interaction ray
