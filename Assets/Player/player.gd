@@ -19,6 +19,12 @@ enum CameraState {
 @export var max_zoom := 6.0
 @export var first_person_threshold := 0.5
 @export var camera_clip_threshold := 1.0
+@export var camera_show_threshold := 1.2
+@export_group("Camera Fade")
+@export var fade_out_speed := 10.0
+@export var fade_in_speed := 25.0
+@export var fade_start_angle := 55.0
+@export var fade_end_angle := 75.0
 
 
 # Movement settings
@@ -35,6 +41,8 @@ enum CameraState {
 # Interaction settings
 @export_group("Interaction")
 @export var interaction_range := 2.5
+@export_range(10.0, 180.0) var interaction_cone_angle := 60.0
+@export var interaction_cone_height := 1.0
 
 
 # Animation settings
@@ -63,6 +71,9 @@ enum CameraState {
 # HUD references
 @onready var _player_hud: CanvasLayer = $PlayerHUD
 
+#Player HoldPoint
+@onready var _hold_point: Marker3D = $HoldPoint
+
 
 # Movement data
 var _camera_input_direction := Vector2.ZERO
@@ -73,10 +84,12 @@ var _last_movement_direction := Vector3.BACK
 var _camera_state := CameraState.THIRD_PERSON
 var _third_person_camera_dragging := false
 var _third_person_mouse_position := Vector2.ZERO
+var _skin_transparency := 0.0
 
 
 # Interaction data
 var _current_interactable: Interactable
+var held_item: RigidBody3D = null
 
 
 # Animation data
@@ -169,6 +182,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("interact") and not event.is_echo():
 		_handle_interaction()
+		
+	if event.is_action_pressed("drop_item") and not event.is_echo():
+		if is_instance_valid(held_item):
+			held_item.drop_item()
 
 
 # Main player update
@@ -187,27 +204,76 @@ func _physics_process(delta: float) -> void:
 
 	_update_interaction_ray()
 	_update_interactable()
+	
+	_hold_point.global_transform = _skin.global_transform * Transform3D(
+		Basis.IDENTITY,
+		Vector3(0.0, 1.0, 1.0)
+	)
 
 
 # Camera visibility and remote animation updates
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if is_multiplayer_authority():
-		_update_player_visibility()
+		_update_player_visibility(delta)
 	else:
 		_update_remote_animation()
 
 
 # Camera visibility
-func _update_player_visibility() -> void:
-	if _camera_state == CameraState.FIRST_PERSON:
-		_skin.visible = false
-		return
+func _update_player_visibility(delta: float) -> void:
+	var target_transparency := 0.0
 
-	var distance: float = _camera.global_position.distance_to(
+	var distance := _camera.global_position.distance_to(
 		_camera_pivot.global_position
 	)
 
-	_skin.visible = distance > camera_clip_threshold
+	# Fade when the camera gets too close.
+	if distance < camera_show_threshold:
+		target_transparency = 1.0 - smoothstep(
+			camera_clip_threshold,
+			camera_show_threshold,
+			distance
+		)
+
+	# Fade when looking upward.
+	var look_angle := rad_to_deg(-_camera_pivot.rotation.x)
+
+	var angle_transparency := smoothstep(
+		fade_start_angle,
+		fade_end_angle,
+		look_angle
+	)
+
+	target_transparency = maxf(
+		target_transparency,
+		angle_transparency
+	)
+
+	# Completely transparent in first-person.
+	if _camera_state == CameraState.FIRST_PERSON:
+		target_transparency = 1.0
+
+	# Smooth transition.
+	var current_fade_speed := fade_out_speed
+
+	if target_transparency < _skin_transparency:
+		current_fade_speed = fade_in_speed
+
+	_skin_transparency = lerpf(
+		_skin_transparency,
+		target_transparency,
+		1.0 - exp(-current_fade_speed * delta)
+	)
+
+	_skin_transparency = clampf(_skin_transparency, 0.0, 1.0)
+
+	# Keep PlayerSkin visible so transparency can work.
+	_skin.visible = true
+
+	# Fade only the character meshes.
+	for node in _skin.find_children("*", "GeometryInstance3D", true, false):
+		var geometry := node as GeometryInstance3D
+		geometry.transparency = _skin_transparency
 
 
 # Camera state
@@ -258,8 +324,8 @@ func _update_camera_rotation(delta: float) -> void:
 
 	_camera_pivot.rotation.x = clampf(
 		_camera_pivot.rotation.x,
-		-PI / 6.0,
-		PI / 3.0
+		-PI / 2.0 + 0.01,
+		PI / 2.0 - 0.01
 	)
 
 	_camera_pivot.rotation.y -= (
@@ -473,6 +539,12 @@ func _update_interaction_ray() -> void:
 		CameraState.FIRST_PERSON:
 			_interaction_ray.global_basis = _camera.global_basis
 
+			_interaction_ray.target_position = Vector3(
+				0.0,
+				0.0,
+				-interaction_range
+			)
+
 		CameraState.THIRD_PERSON:
 			_interaction_ray.global_rotation = Vector3(
 				0.0,
@@ -480,17 +552,90 @@ func _update_interaction_ray() -> void:
 				0.0
 			)
 
-	_interaction_ray.target_position = Vector3(
-		0.0,
-		0.0,
-		-interaction_range
-	)
+			_interaction_ray.target_position = Vector3(
+				0.0,
+				-0.8,
+				-interaction_range
+			)
 
 	_interaction_ray.force_raycast_update()
 
+#ConeRay
+func _get_interactable_in_cone() -> Interactable:
+	var sphere := SphereShape3D.new()
+	sphere.radius = interaction_range
+
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = sphere
+	query.transform = Transform3D(
+		Basis.IDENTITY,
+		global_position + Vector3.UP * interaction_cone_height
+	)
+
+	# Layer 3 = Interactables
+	query.collision_mask = 1 << 2
+	query.collide_with_areas = true
+	query.collide_with_bodies = false
+
+	var results := get_world_3d().direct_space_state.intersect_shape(
+		query,
+		32
+	)
+
+	# Use the camera's full 3D direction.
+	var camera_forward := -_camera.global_basis.z
+	var camera_position := _camera.global_position
+
+	var minimum_alignment := cos(
+		deg_to_rad(interaction_cone_angle * 0.5)
+	)
+
+	var best_interactable: Interactable = null
+	var best_score := -INF
+
+	for result in results:
+		var collider: Object = result["collider"]
+
+		if not collider is Interactable:
+			continue
+
+		var interactable := collider as Interactable
+
+		if not interactable.interaction_enabled:
+			continue
+
+		# Direction from the camera to the object.
+		var to_target := interactable.global_position - camera_position
+		var distance := to_target.length()
+
+		if distance < 0.001:
+			continue
+
+		# Keep objects within interaction distance of the player.
+		if interactable.global_position.distance_to(global_position) > interaction_range:
+			continue
+
+		var direction := to_target.normalized()
+		var alignment := camera_forward.dot(direction)
+
+		if alignment < minimum_alignment:
+			continue
+
+		# Prefer the object closest to the camera's aim.
+		var score := alignment * 3.0 - distance * 0.05
+
+		if score > best_score:
+			best_score = score
+			best_interactable = interactable
+
+	return best_interactable
 
 # Detect interactable
 func _get_interactable() -> Interactable:
+	if _camera_state == CameraState.THIRD_PERSON:
+		return _get_interactable_in_cone()
+
+	# Keep existing first-person raycast.
 	if not _interaction_ray.is_colliding():
 		return null
 

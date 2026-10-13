@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://ca7nwpnuka0kq" path="res://Assets/Scenes/main.gd" id="1_ygaiq"]
 [ext_resource type="PackedScene" uid="uid://cuqecmqlocj5v" path="res://Assets/Scenes/environment.tscn" id="2_wkehv"]
 [ext_resource type="PackedScene" uid="uid://t54jgghiavj1" path="res://Assets/Scenes/fryer.tscn" id="4_2qpql"]
+[ext_resource type="PackedScene" uid="uid://cfg3ciunm83rm" path="res://Assets/Scenes/pickup_item.tscn" id="4_gjahs"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_xrivr"]
 
@@ -54,3 +55,9 @@ spawn_path = NodePath("..")
 
 [node name="Fryer" parent="." unique_id=352370809 instance=ExtResource("4_2qpql")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45940757, -7.440049)
+
+[node name="PickupItem2" parent="." unique_id=855610101 instance=ExtResource("4_gjahs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.722657, 5.454261, 0.5925045)
+
+[node name="PickupItem" parent="." unique_id=1990698934 instance=ExtResource("4_gjahs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3613286, 2.7271304, 0.29625225)
