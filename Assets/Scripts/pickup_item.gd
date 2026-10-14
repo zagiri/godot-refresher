@@ -2,6 +2,23 @@
 extends RigidBody3D
 
 
+# ==================================================
+# ITEM STATES
+# ==================================================
+
+enum ItemState {
+	WORLD,
+	HELD,
+	PLACED
+}
+
+var item_state := ItemState.WORLD
+
+
+# ==================================================
+# SETTINGS
+# ==================================================
+
 @export_group("Pickup")
 @export var hold_offset := Vector3(0.0, 1.0, 1.0)
 
@@ -9,18 +26,32 @@ extends RigidBody3D
 @export var physics_sync_rate := 0.1
 
 
+# ==================================================
+# REFERENCES
+# ==================================================
+
 @onready var _interactable: Interactable = $InteractableBase
 
 
+# ==================================================
+# ITEM DATA
+# ==================================================
+
 var held_by: CharacterBody3D = null
+var placed_in: Node3D = null
 
 var _original_collision_layer: int
 var _original_collision_mask: int
 var _physics_sync_timer := 0.0
 
-# Late-join state
+# Late-join synchronization
 var _pending_holder_id := 0
+var _pending_slot_path := NodePath("")
 
+
+# ==================================================
+# INITIALIZATION
+# ==================================================
 
 func _ready() -> void:
 	_original_collision_layer = collision_layer
@@ -31,26 +62,48 @@ func _ready() -> void:
 
 	add_to_group("sync_pickup_items")
 
-	# Only the host simulates item physics.
 	if not multiplayer.is_server():
 		freeze = true
 
 
+# ==================================================
+# PHYSICS UPDATE
+# ==================================================
+
 func _physics_process(delta: float) -> void:
-	# Apply a late-join pickup once the holder exists.
+	# Resolve a late-join holder.
 	if _pending_holder_id != 0:
 		var player := _get_player(_pending_holder_id)
 
 		if is_instance_valid(player):
 			_apply_pickup_local(_pending_holder_id)
-			_pending_holder_id = 0
 
-	# Keep carried items attached visually.
-	if is_instance_valid(held_by):
-		_update_held_position()
-		return
+	# Resolve a late-join placement slot.
+	if not _pending_slot_path.is_empty():
+		var slot := get_node_or_null(
+			_pending_slot_path
+		) as Node3D
 
-	# Clients do not simulate dropped item physics.
+		if slot != null:
+			_apply_placement_local(_pending_slot_path)
+
+		else:
+			return
+
+	match item_state:
+		ItemState.HELD:
+			if is_instance_valid(held_by):
+				_update_held_position()
+			return
+
+		ItemState.PLACED:
+			if is_instance_valid(placed_in):
+				_update_placed_position()
+			return
+
+		ItemState.WORLD:
+			pass
+
 	if not multiplayer.is_server():
 		return
 
@@ -77,17 +130,22 @@ func _on_interacted(player: Node) -> void:
 	if not player.is_multiplayer_authority():
 		return
 
-	if is_instance_valid(held_by):
+	if item_state != ItemState.WORLD:
 		return
 
 	if _pending_holder_id != 0:
+		return
+
+	if not _pending_slot_path.is_empty():
 		return
 
 	if is_instance_valid(player.get("held_item")):
 		return
 
 	if multiplayer.is_server():
-		_server_pickup(player.get_multiplayer_authority())
+		_server_pickup(
+			player.get_multiplayer_authority()
+		)
 	else:
 		_request_pickup.rpc_id(1)
 
@@ -97,15 +155,16 @@ func _request_pickup() -> void:
 	if not multiplayer.is_server():
 		return
 
-	var peer_id := multiplayer.get_remote_sender_id()
-	_server_pickup(peer_id)
+	_server_pickup(
+		multiplayer.get_remote_sender_id()
+	)
 
 
 func _server_pickup(peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
 
-	if is_instance_valid(held_by):
+	if item_state != ItemState.WORLD:
 		return
 
 	var player := _get_player(peer_id)
@@ -116,8 +175,9 @@ func _server_pickup(peer_id: int) -> void:
 	if is_instance_valid(player.get("held_item")):
 		return
 
-	# Server-side pickup distance validation.
-	if player.global_position.distance_to(global_position) > 3.0:
+	if player.global_position.distance_to(
+		global_position
+	) > 3.0:
 		return
 
 	_apply_pickup.rpc(peer_id)
@@ -133,21 +193,37 @@ func _apply_pickup_local(peer_id: int) -> void:
 
 	if not is_instance_valid(player):
 		_pending_holder_id = peer_id
+		_pending_slot_path = NodePath("")
+
+		# Do not allow interaction while waiting.
+		freeze = true
+		collision_layer = 0
+		collision_mask = 0
+		_interactable.set_interaction_enabled(false)
+
 		return
 
 	_pending_holder_id = 0
+	_pending_slot_path = NodePath("")
 
-	# Avoid replaying an already-applied pickup.
-	if held_by == player:
+	if item_state == ItemState.HELD and held_by == player:
 		return
 
-	# Clear an outdated holder if necessary.
+	# Clear the previous player.
 	if is_instance_valid(held_by):
 		if held_by.get("held_item") == self:
 			held_by.set("held_item", null)
 
+	# Clear previous placement slot.
+	if is_instance_valid(placed_in):
+		_clear_slot_reference()
+
 	held_by = player
+	placed_in = null
+
 	player.set("held_item", self)
+
+	item_state = ItemState.HELD
 
 	_interactable.set_interaction_enabled(false)
 	_interactable.hide_prompt()
@@ -156,10 +232,10 @@ func _apply_pickup_local(peer_id: int) -> void:
 		_wake_nearby_items()
 
 	freeze = true
+
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 
-	# Prevent the carried item from colliding with players.
 	collision_layer = 0
 	collision_mask = 0
 
@@ -176,12 +252,13 @@ func _update_held_position() -> void:
 	if not is_instance_valid(held_by):
 		return
 
-	var skin := held_by.get_node_or_null("PlayerSkin") as Node3D
+	var skin := held_by.get_node_or_null(
+		"PlayerSkin"
+	) as Node3D
 
 	if skin == null:
 		return
 
-	# Keep the item under Main to preserve multiplayer paths.
 	global_transform = skin.global_transform * Transform3D(
 		Basis.IDENTITY,
 		hold_offset
@@ -193,15 +270,19 @@ func _update_held_position() -> void:
 # ==================================================
 
 func drop_item() -> void:
+	if item_state != ItemState.HELD:
+		return
+
 	if not is_instance_valid(held_by):
 		return
 
-	# Only the player holding the item can request dropping.
 	if not held_by.is_multiplayer_authority():
 		return
 
 	if multiplayer.is_server():
-		_server_drop(held_by.get_multiplayer_authority())
+		_server_drop(
+			held_by.get_multiplayer_authority()
+		)
 	else:
 		_request_drop.rpc_id(1)
 
@@ -211,12 +292,16 @@ func _request_drop() -> void:
 	if not multiplayer.is_server():
 		return
 
-	var peer_id := multiplayer.get_remote_sender_id()
-	_server_drop(peer_id)
+	_server_drop(
+		multiplayer.get_remote_sender_id()
+	)
 
 
 func _server_drop(peer_id: int) -> void:
 	if not multiplayer.is_server():
+		return
+
+	if item_state != ItemState.HELD:
 		return
 
 	if not is_instance_valid(held_by):
@@ -227,43 +312,42 @@ func _server_drop(peer_id: int) -> void:
 
 	var drop_transform := global_transform
 
-	var skin := held_by.get_node_or_null("PlayerSkin") as Node3D
+	var skin := held_by.get_node_or_null(
+		"PlayerSkin"
+	) as Node3D
 
 	if skin != null:
-		drop_transform.origin += skin.global_basis.z * 0.5
+		drop_transform.origin += (
+			skin.global_basis.z * 0.5
+		)
 
 	_apply_drop.rpc(drop_transform)
 
-# Automatically release items when their holder disconnects.
-func release_disconnected_player(peer_id: int) -> void:
-	if not multiplayer.is_server():
-		return
-
-	if not is_instance_valid(held_by):
-		return
-
-	if held_by.get_multiplayer_authority() != peer_id:
-		return
-
-	print("Releasing item from disconnected player: ", peer_id)
-
-	# Reuse our existing drop logic.
-	_server_drop(peer_id)
 
 @rpc("authority", "call_local", "reliable")
 func _apply_drop(drop_transform: Transform3D) -> void:
 	_apply_drop_local(drop_transform)
 
 
-func _apply_drop_local(drop_transform: Transform3D) -> void:
+func _apply_drop_local(
+	drop_transform: Transform3D
+) -> void:
+	# Clear previous holder.
 	if is_instance_valid(held_by):
-		var player := held_by
+		if held_by.get("held_item") == self:
+			held_by.set("held_item", null)
 
-		if player.get("held_item") == self:
-			player.set("held_item", null)
+	# Clear previous slot.
+	if is_instance_valid(placed_in):
+		_clear_slot_reference()
 
 	held_by = null
+	placed_in = null
+
 	_pending_holder_id = 0
+	_pending_slot_path = NodePath("")
+
+	item_state = ItemState.WORLD
 
 	global_transform = drop_transform
 
@@ -273,7 +357,6 @@ func _apply_drop_local(drop_transform: Transform3D) -> void:
 	collision_layer = _original_collision_layer
 	collision_mask = _original_collision_mask
 
-	# Only the host resumes physics simulation.
 	freeze = not multiplayer.is_server()
 
 	if multiplayer.is_server():
@@ -282,6 +365,153 @@ func _apply_drop_local(drop_transform: Transform3D) -> void:
 	_interactable.set_interaction_enabled(true)
 
 	print("Dropped item: ", name)
+
+
+# ==================================================
+# PLACEMENT
+# ==================================================
+
+func place_in_slot(slot: Node3D) -> void:
+	if not multiplayer.is_server():
+		return
+
+	if item_state != ItemState.HELD:
+		return
+
+	if not is_instance_valid(slot):
+		return
+
+	if not is_instance_valid(held_by):
+		return
+
+	_apply_placement.rpc(slot.get_path())
+
+
+@rpc("authority", "call_local", "reliable")
+func _apply_placement(slot_path: NodePath) -> void:
+	_apply_placement_local(slot_path)
+
+
+func _apply_placement_local(
+	slot_path: NodePath
+) -> void:
+	var slot := get_node_or_null(slot_path) as Node3D
+
+	if slot == null:
+		_pending_slot_path = slot_path
+		return
+
+	var marker := slot.get_node_or_null(
+		"ItemPosition"
+	) as Marker3D
+
+	if marker == null:
+		push_warning(
+			"PlacementSlot missing ItemPosition: " +
+			str(slot_path)
+		)
+		return
+
+	_pending_slot_path = NodePath("")
+	_pending_holder_id = 0
+
+	# Release item from player.
+	if is_instance_valid(held_by):
+		if held_by.get("held_item") == self:
+			held_by.set("held_item", null)
+
+	held_by = null
+
+	# Clear an old slot if needed.
+	if is_instance_valid(placed_in):
+		if placed_in != slot:
+			_clear_slot_reference()
+
+	item_state = ItemState.PLACED
+	placed_in = slot
+
+	# Update slot occupancy.
+	slot.set("placed_item", self)
+
+	var slot_interactable := slot.get_node_or_null(
+		"InteractableBase"
+	) as Interactable
+
+	if slot_interactable != null:
+		slot_interactable.interaction_action = "Retrieve"
+
+	freeze = true
+
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
+
+	collision_layer = 0
+	collision_mask = 0
+
+	_interactable.set_interaction_enabled(false)
+	_interactable.hide_prompt()
+
+	global_transform = marker.global_transform
+
+	print(name, " placed into ", slot.name)
+
+
+func _update_placed_position() -> void:
+	if not is_instance_valid(placed_in):
+		return
+
+	var marker := placed_in.get_node_or_null(
+		"ItemPosition"
+	) as Marker3D
+
+	if marker != null:
+		global_transform = marker.global_transform
+
+
+# ==================================================
+# RETRIEVAL
+# ==================================================
+
+func retrieve_from_slot(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+
+	if item_state != ItemState.PLACED:
+		return
+
+	var player := _get_player(peer_id)
+
+	if not is_instance_valid(player):
+		return
+
+	if is_instance_valid(player.get("held_item")):
+		return
+
+	_apply_retrieval.rpc(peer_id)
+
+
+@rpc("authority", "call_local", "reliable")
+func _apply_retrieval(peer_id: int) -> void:
+	_apply_pickup_local(peer_id)
+
+
+# ==================================================
+# SLOT CLEANUP
+# ==================================================
+
+func _clear_slot_reference() -> void:
+	if not is_instance_valid(placed_in):
+		return
+
+	if placed_in.get("placed_item") == self:
+		placed_in.set("placed_item", null)
+
+	var slot_interactable := placed_in.get_node_or_null(
+		"InteractableBase"
+	) as Interactable
+
+	if slot_interactable != null:
+		slot_interactable.interaction_action = "Place"
 
 
 # ==================================================
@@ -297,10 +527,17 @@ func _sync_physics(
 	if multiplayer.is_server():
 		return
 
-	if is_instance_valid(held_by) or _pending_holder_id != 0:
+	if item_state != ItemState.WORLD:
+		return
+
+	if _pending_holder_id != 0:
+		return
+
+	if not _pending_slot_path.is_empty():
 		return
 
 	global_transform = item_transform
+
 	linear_velocity = item_velocity
 	angular_velocity = item_angular_velocity
 
@@ -314,13 +551,21 @@ func send_current_state(peer_id: int) -> void:
 		return
 
 	var holder_id := 0
+	var slot_path := NodePath("")
 
-	if is_instance_valid(held_by):
-		holder_id = held_by.get_multiplayer_authority()
+	if item_state == ItemState.HELD:
+		if is_instance_valid(held_by):
+			holder_id = held_by.get_multiplayer_authority()
+
+	elif item_state == ItemState.PLACED:
+		if is_instance_valid(placed_in):
+			slot_path = placed_in.get_path()
 
 	_receive_current_state.rpc_id(
 		peer_id,
+		item_state,
 		holder_id,
+		slot_path,
 		global_transform,
 		linear_velocity,
 		angular_velocity
@@ -329,7 +574,9 @@ func send_current_state(peer_id: int) -> void:
 
 @rpc("authority", "call_remote", "reliable")
 func _receive_current_state(
+	state: int,
 	holder_id: int,
+	slot_path: NodePath,
 	item_transform: Transform3D,
 	item_velocity: Vector3,
 	item_angular_velocity: Vector3
@@ -337,15 +584,20 @@ func _receive_current_state(
 	if multiplayer.is_server():
 		return
 
-	if holder_id != 0:
-		# The holder might not have spawned on this client yet.
-		_apply_pickup_local(holder_id)
-	else:
-		_apply_drop_local(item_transform)
+	match state:
+		ItemState.WORLD:
+			_apply_drop_local(item_transform)
 
-		# Restore the host's current physics snapshot.
-		linear_velocity = item_velocity
-		angular_velocity = item_angular_velocity
+			linear_velocity = item_velocity
+			angular_velocity = item_angular_velocity
+
+		ItemState.HELD:
+			if holder_id != 0:
+				_apply_pickup_local(holder_id)
+
+		ItemState.PLACED:
+			if not slot_path.is_empty():
+				_apply_placement_local(slot_path)
 
 
 # ==================================================
@@ -372,6 +624,31 @@ func _get_player(peer_id: int) -> CharacterBody3D:
 
 
 # ==================================================
+# PLAYER DISCONNECT CLEANUP
+# ==================================================
+
+func release_disconnected_player(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+
+	if item_state != ItemState.HELD:
+		return
+
+	if not is_instance_valid(held_by):
+		return
+
+	if held_by.get_multiplayer_authority() != peer_id:
+		return
+
+	print(
+		"Releasing item from disconnected player: ",
+		peer_id
+	)
+
+	_server_drop(peer_id)
+
+
+# ==================================================
 # STACKED ITEM PHYSICS
 # ==================================================
 
@@ -380,6 +657,7 @@ func _wake_nearby_items() -> void:
 	sphere.radius = 1.0
 
 	var query := PhysicsShapeQueryParameters3D.new()
+
 	query.shape = sphere
 
 	query.transform = Transform3D(
