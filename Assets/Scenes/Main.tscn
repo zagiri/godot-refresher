@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bf4en50pj4j6a"]
 
-[ext_resource type="Script" uid="uid://ca7nwpnuka0kq" path="res://Assets/Scenes/main.gd" id="1_ygaiq"]
+[ext_resource type="Script" uid="uid://ca7nwpnuka0kq" path="res://Assets/Scripts/main.gd" id="1_ygaiq"]
 [ext_resource type="PackedScene" uid="uid://cuqecmqlocj5v" path="res://Assets/Scenes/environment.tscn" id="2_wkehv"]
 [ext_resource type="PackedScene" uid="uid://t54jgghiavj1" path="res://Assets/Scenes/fryer.tscn" id="4_2qpql"]
 [ext_resource type="PackedScene" uid="uid://cfg3ciunm83rm" path="res://Assets/Scenes/pickup_item.tscn" id="4_gjahs"]

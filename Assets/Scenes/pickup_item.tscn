@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cfg3ciunm83rm"]
 
-[ext_resource type="Script" uid="uid://d4fssrhm1wsm7" path="res://Assets/Scenes/pickup_item.gd" id="1_dxmdk"]
+[ext_resource type="Script" uid="uid://d4fssrhm1wsm7" path="res://Assets/Scripts/pickup_item.gd" id="1_dxmdk"]
 [ext_resource type="PackedScene" uid="uid://drintcipmsay8" path="res://Assets/Scenes/interactableBase.tscn" id="1_hbd0p"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_dxmdk"]
