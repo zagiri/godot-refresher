@@ -2,30 +2,25 @@
 extends Node3D
 
 
-# Player scene
 const PLAYER_CONTROLLER = preload("uid://cps4dh3kjo074")
 
 
-# Player data
 var players: Array[CharacterBody3D] = []
 
 
 func _ready() -> void:
-	print(
-		"MAIN LOADED | Host: ",
-		Networking.is_host
-	)
+	print("MAIN LOADED | Host: ", Networking.is_host)
 
 	if Networking.is_host:
-		# Host manages spawning and disconnections
-		multiplayer.peer_disconnected.connect(
-			_on_peer_disconnected
-		)
+		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 
 		spawn_player(multiplayer.get_unique_id())
 
 
-# Client starts synchronization after connecting
+# ==================================================
+# CLIENT CONNECTION
+# ==================================================
+
 func start_client_sync() -> void:
 	if Networking.is_host:
 		return
@@ -35,7 +30,6 @@ func start_client_sync() -> void:
 	_notify_server_ready.call_deferred()
 
 
-# Notify host that gameplay is ready
 func _notify_server_ready() -> void:
 	if Networking.is_host:
 		return
@@ -51,29 +45,37 @@ func _notify_server_ready() -> void:
 	_client_ready.rpc_id(1)
 
 
-# Host receives client readiness
+# ==================================================
+# SERVER PLAYER SPAWNING
+# ==================================================
+
 @rpc("any_peer", "call_remote", "reliable")
 func _client_ready() -> void:
 	if not multiplayer.is_server():
 		return
 
-	var peer_id: int = multiplayer.get_remote_sender_id()
+	var peer_id := multiplayer.get_remote_sender_id()
 
 	print("HOST: Client ready: ", peer_id)
 
-	# Spawn the joining player
 	if not _has_player(peer_id):
 		spawn_player(peer_id)
 
-	# Send current equipment states
-	for equipment in get_tree().get_nodes_in_group(
-		"sync_equipment"
-	):
+	# Synchronize existing equipment, including the fryer.
+	for equipment in get_tree().get_nodes_in_group("sync_equipment"):
 		if equipment.has_method("send_current_state"):
 			equipment.send_current_state(peer_id)
 
+	# Synchronize existing pickup items for late joiners.
+	for item in get_tree().get_nodes_in_group("sync_pickup_items"):
+		if item.has_method("send_current_state"):
+			item.send_current_state(peer_id)
 
-# Spawn player on the server
+
+# ==================================================
+# SPAWN PLAYER
+# ==================================================
+
 func spawn_player(peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
@@ -83,13 +85,10 @@ func spawn_player(peer_id: int) -> void:
 
 	var new_player := PLAYER_CONTROLLER.instantiate() as CharacterBody3D
 
-	# Player authority is assigned from this name
 	new_player.name = str(peer_id)
-
-	# Set position before adding the player
 	new_player.position = $SpawnPoint.position
 
-	# MultiplayerSpawner replicates the player
+	# MultiplayerSpawner replicates the player.
 	add_child(new_player)
 
 	initialize_player(new_player)
@@ -97,13 +96,11 @@ func spawn_player(peer_id: int) -> void:
 	print("PLAYER SPAWNED: ", peer_id)
 
 
-# Register a player
 func initialize_player(player: CharacterBody3D) -> void:
 	if not players.has(player):
 		players.append(player)
 
 
-# Check if player already exists
 func _has_player(peer_id: int) -> bool:
 	for player in players:
 		if not is_instance_valid(player):
@@ -115,8 +112,22 @@ func _has_player(peer_id: int) -> bool:
 	return false
 
 
-# Remove disconnected players
+# ==================================================
+# PLAYER DISCONNECTION
+# ==================================================
+
 func _on_peer_disconnected(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+
+	print("PLAYER DISCONNECTED: ", peer_id)
+
+	# Release any items belonging to this player.
+	for item in get_tree().get_nodes_in_group("sync_pickup_items"):
+		if item.has_method("release_disconnected_player"):
+			item.release_disconnected_player(peer_id)
+
+	# Remove the disconnected player.
 	for player in players:
 		if not is_instance_valid(player):
 			continue
@@ -124,12 +135,12 @@ func _on_peer_disconnected(peer_id: int) -> void:
 		if player.get_multiplayer_authority() == peer_id:
 			players.erase(player)
 			player.queue_free()
-
-			print("PLAYER DISCONNECTED: ", peer_id)
 			return
 
+# ==================================================
+# REPLICATED PLAYER SPAWNING
+# ==================================================
 
-# Called when MultiplayerSpawner replicates a player
 func _on_multiplayer_spawner_spawned(node: Node) -> void:
 	if node is CharacterBody3D:
 		var player := node as CharacterBody3D
