@@ -1,0 +1,92 @@
+[gd_scene format=3 uid="uid://da1wkwpm3j7ua"]
+
+[ext_resource type="Script" uid="uid://de6grrff65ow1" path="res://Assets/Scripts/main_menu.gd" id="1_x6jn2"]
+
+[node name="MainMenu" type="Control" unique_id=2031819974]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_x6jn2")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1143681230]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.14767182, 0.14767179, 0.14767179, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1454371523]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1424413057]
+custom_minimum_size = Vector2(260, 180)
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1318560551]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Macca's Simulator"
+horizontal_alignment = 1
+
+[node name="TabContainer" type="TabContainer" parent="CenterContainer/VBoxContainer" unique_id=2115082849]
+layout_mode = 2
+current_tab = 0
+
+[node name="Local" type="VBoxContainer" parent="CenterContainer/VBoxContainer/TabContainer" unique_id=1089079559]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer/TabContainer/Local" unique_id=367411777]
+layout_mode = 2
+alignment = 1
+
+[node name="HostLANButton" type="Button" parent="CenterContainer/VBoxContainer/TabContainer/Local/HBoxContainer" unique_id=580623788]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Host Local
+"
+
+[node name="JoinLANButton" type="Button" parent="CenterContainer/VBoxContainer/TabContainer/Local/HBoxContainer" unique_id=1134511729]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Join Local"
+
+[node name="IPAddressInput" type="LineEdit" parent="CenterContainer/VBoxContainer/TabContainer/Local" unique_id=914860121]
+layout_mode = 2
+placeholder_text = "Enter host IP"
+alignment = 1
+
+[node name="Online" type="VBoxContainer" parent="CenterContainer/VBoxContainer/TabContainer" unique_id=413817848]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="HostButton" type="Button" parent="CenterContainer/VBoxContainer/TabContainer/Online" unique_id=1051087312]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Host Game"
+
+[node name="JoinButton" type="Button" parent="CenterContainer/VBoxContainer/TabContainer/Online" unique_id=459113527]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Join Friend"
+
+[node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1881923435]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Quit Game"
+
+[connection signal="text_changed" from="CenterContainer/VBoxContainer/TabContainer/Local/IPAddressInput" to="." method="_on_ip_address_input_text_changed"]

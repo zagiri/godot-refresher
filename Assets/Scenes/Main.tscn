@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://bf4en50pj4j6a"]
 
-[ext_resource type="Script" uid="uid://ca7nwpnuka0kq" path="res://Assets/Scenes/main.gd" id="1_ygaiq"]
+[ext_resource type="Script" uid="uid://ca7nwpnuka0kq" path="res://Assets/Scripts/main.gd" id="1_ygaiq"]
 [ext_resource type="PackedScene" uid="uid://cuqecmqlocj5v" path="res://Assets/Scenes/environment.tscn" id="2_wkehv"]
 [ext_resource type="PackedScene" uid="uid://t54jgghiavj1" path="res://Assets/Scenes/fryer.tscn" id="4_2qpql"]
+[ext_resource type="PackedScene" uid="uid://cfg3ciunm83rm" path="res://Assets/Scenes/pickup_item.tscn" id="4_gjahs"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_xrivr"]
 
@@ -45,13 +46,6 @@ mesh = SubResource("PrismMesh_xrivr")
 transform = Transform3D(3.445527, 0, 0, 0, 3.445527, 0, 0, 0, 3.445527, 0, 0, 0)
 shape = SubResource("ConcavePolygonShape3D_wkehv")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1322925844]
-
-[node name="Host" type="Button" parent="CanvasLayer" unique_id=759972292]
-offset_right = 8.0
-offset_bottom = 8.0
-text = "Host"
-
 [node name="SpawnPoint" type="Node3D" parent="." unique_id=685197651]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
 
@@ -62,4 +56,8 @@ spawn_path = NodePath("..")
 [node name="Fryer" parent="." unique_id=352370809 instance=ExtResource("4_2qpql")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45940757, -7.440049)
 
-[connection signal="pressed" from="CanvasLayer/Host" to="." method="_on_host_pressed"]
+[node name="PickupItem2" parent="." unique_id=855610101 instance=ExtResource("4_gjahs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.722657, 5.454261, 0.5925045)
+
+[node name="PickupItem" parent="." unique_id=1990698934 instance=ExtResource("4_gjahs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3613286, 2.7271304, 0.29625225)

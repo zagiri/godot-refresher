@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://cvrson3thdnfw"]
+
+[ext_resource type="Script" uid="uid://cvariedlwsaor" path="res://Assets/Scripts/connection_screen.gd" id="1_88i7w"]
+[ext_resource type="Texture2D" uid="uid://bbbubj61ex26k" path="res://icon.svg" id="2_jgk1q"]
+
+[node name="ConnectionScreen" type="CanvasLayer" unique_id=1738183478]
+script = ExtResource("1_88i7w")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1349178282]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.14901961, 0.14901961, 0.14901961, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="Background" unique_id=248464374]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Background/CenterContainer" unique_id=675864309]
+custom_minimum_size = Vector2(350, 20)
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="Background/CenterContainer/VBoxContainer" unique_id=509520409]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Macca's Simulator"
+horizontal_alignment = 1
+
+[node name="LoadingSpinner" type="TextureRect" parent="Background/CenterContainer/VBoxContainer" unique_id=890141178]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("2_jgk1q")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatusLabel" type="Label" parent="Background/CenterContainer/VBoxContainer" unique_id=1336027020]
+layout_mode = 2
+text = "Waiting for LAN host connection..."
+horizontal_alignment = 1
+
+[node name="BackButton" type="Button" parent="Background/CenterContainer/VBoxContainer" unique_id=586101964]
+layout_mode = 2
+text = "Back to Main Menu"
