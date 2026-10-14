@@ -9,15 +9,81 @@ extends Node3D
 @onready var _item_position: Marker3D = $ItemPosition
 
 var placed_item: RigidBody3D = null
+var _snap_queued := false
 
 
 func _ready() -> void:
 	_interactable.interacted.connect(_on_interacted)
+	_interactable.body_entered.connect(_on_body_entered)
 	_interactable.interaction_action = "Place"
 
 
 func _process(_delta: float) -> void:
 	_update_interaction_prompt()
+
+
+func _physics_process(_delta: float) -> void:
+	if not multiplayer.is_server():
+		return
+
+	if is_instance_valid(placed_item) or _snap_queued:
+		return
+
+	# Also catches items dropped while already inside the area.
+	for body in _interactable.get_overlapping_bodies():
+		if _is_loose_item(body):
+			_queue_snap(body)
+			return
+
+
+func _on_body_entered(body: Node3D) -> void:
+	if not multiplayer.is_server():
+		return
+
+	if _is_loose_item(body):
+		_queue_snap(body)
+
+
+func _queue_snap(body: Node3D) -> void:
+	if _snap_queued:
+		return
+
+	_snap_queued = true
+	_try_snap_item.call_deferred(body)
+
+
+func _try_snap_item(body: Node3D) -> void:
+	_snap_queued = false
+
+	if not multiplayer.is_server():
+		return
+
+	if is_instance_valid(placed_item):
+		return
+
+	if not _is_loose_item(body):
+		return
+
+	if not _interactable.overlaps_body(body):
+		return
+
+	body.call("place_in_slot", self)
+
+
+func _is_loose_item(body: Node) -> bool:
+	if not is_instance_valid(body):
+		return false
+
+	if not body is RigidBody3D:
+		return false
+
+	if not body.is_in_group("sync_pickup_items"):
+		return false
+
+	if not body.has_method("place_in_slot"):
+		return false
+
+	return body.get("item_state") == 0
 
 
 func _on_interacted(player: Node) -> void:
@@ -65,28 +131,28 @@ func _server_interact(peer_id: int) -> void:
 		if is_instance_valid(held_item):
 			return
 
-		if placed_item.item_state != placed_item.ItemState.PLACED:
+		if placed_item.get("item_state") != 2:
 			return
 
-		if placed_item.placed_in != self:
+		if placed_item.get("placed_in") != self:
 			return
 
-		placed_item.retrieve_from_slot(peer_id)
+		placed_item.call("retrieve_from_slot", peer_id)
 		return
 
 	# Place the item the player is holding.
 	if is_instance_valid(held_item):
-		if held_item.item_state != held_item.ItemState.HELD:
+		if held_item.get("item_state") != 1:
 			return
 
-		held_item.place_in_slot(self)
+		held_item.call("place_in_slot", self)
 		return
 
-	# Pick up a loose item dropped onto the slot.
+	# Pick up a loose item near the marker.
 	var loose_item := _find_loose_item()
 
 	if is_instance_valid(loose_item):
-		loose_item._server_pickup(peer_id)
+		loose_item.call("_server_pickup", peer_id)
 
 
 func _find_loose_item() -> RigidBody3D:
@@ -98,7 +164,10 @@ func _find_loose_item() -> RigidBody3D:
 
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = sphere
-	query.transform = Transform3D(Basis.IDENTITY, _item_position.global_position)
+	query.transform = Transform3D(
+		Basis.IDENTITY,
+		_item_position.global_position
+	)
 	query.collision_mask = 1
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
@@ -111,13 +180,12 @@ func _find_loose_item() -> RigidBody3D:
 	for result in results:
 		var body := result["collider"] as RigidBody3D
 
-		if body == null or not body.is_in_group("sync_pickup_items"):
+		if not _is_loose_item(body):
 			continue
 
-		if body.item_state != body.ItemState.WORLD:
-			continue
-
-		var distance := body.global_position.distance_to(_item_position.global_position)
+		var distance := body.global_position.distance_to(
+			_item_position.global_position
+		)
 
 		if distance < closest_distance:
 			closest_distance = distance

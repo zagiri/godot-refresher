@@ -28,6 +28,7 @@ extends Node3D
 @export var dynamic_item_height := true
 @export var item_clearance := 0.1
 
+@export var instant_follow := false
 
 # ==================================================
 # ANIMATION
@@ -161,12 +162,10 @@ func _ready() -> void:
 # ==================================================
 
 func _process(delta: float) -> void:
+	_calculate_equipment_top()
 	_update_distance_scale(delta)
-
 	_update_panel_scale()
-
 	_update_dynamic_target()
-
 	_update_panel_positions(delta)
 
 
@@ -518,8 +517,8 @@ func _update_panel_positions(delta: float) -> void:
 		* _prompt_alpha
 	)
 
-	var weight: float = 1.0 - exp(
-		-maxf(follow_speed, 0.0) * delta
+	var weight: float = 1.0 if instant_follow else (
+		1.0 - exp(-maxf(follow_speed, 0.0) * delta)
 	)
 
 	var prompt_target := Vector3(

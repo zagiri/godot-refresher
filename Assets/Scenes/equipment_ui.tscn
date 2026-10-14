@@ -59,12 +59,14 @@ corner_radius_bottom_left = 6
 script = ExtResource("1_t8thn")
 
 [node name="StatusDisplay" type="Sprite3D" parent="." unique_id=1692310563]
+visible = false
 pixel_size = 0.008
 billboard = 1
 shaded = true
 texture = SubResource("ViewportTexture_de83g")
 
 [node name="PromptDisplay" type="Sprite3D" parent="." unique_id=70655613]
+visible = false
 pixel_size = 0.008
 billboard = 1
 shaded = true
