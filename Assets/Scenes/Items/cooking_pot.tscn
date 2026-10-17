@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://bluub3tar8xuq"]
+
+[ext_resource type="Script" uid="uid://d4fssrhm1wsm7" path="res://Assets/Scripts/pickup_item.gd" id="1_yfhxw"]
+[ext_resource type="Resource" uid="uid://djxg1yji3xc0e" path="res://Assets/Resources/cooking_pot.tres" id="2_5g37g"]
+[ext_resource type="PackedScene" uid="uid://drintcipmsay8" path="res://Assets/Scenes/interactableBase.tscn" id="2_f0w4d"]
+[ext_resource type="PackedScene" uid="uid://b02blxafsq1bc" path="res://Assets/Models/gltf/pot_A.gltf" id="2_yfhxw"]
+[ext_resource type="PackedScene" uid="uid://cwnrkkiqmdicq" path="res://Assets/Scenes/equipment_ui.tscn" id="3_5g37g"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tihby"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hbd0p"]
+radius = 0.6
+
+[node name="CookingPot" type="RigidBody3D" unique_id=855610101]
+collision_mask = 3
+continuous_cd = true
+script = ExtResource("1_yfhxw")
+item_data = ExtResource("2_5g37g")
+
+[node name="pot" parent="." unique_id=519161249 instance=ExtResource("2_yfhxw")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=19409569]
+transform = Transform3D(1, 0, 0, 0, 0.6, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("BoxShape3D_tihby")
+
+[node name="InteractableBase" parent="." unique_id=421331263 instance=ExtResource("2_f0w4d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Area3D" parent="InteractableBase" index="0" unique_id=1476203914]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("SphereShape3D_hbd0p")
+
+[node name="EquipmentUI" parent="." unique_id=1293692385 instance=ExtResource("3_5g37g")]
+instant_follow = true
+
+[editable path="InteractableBase"]

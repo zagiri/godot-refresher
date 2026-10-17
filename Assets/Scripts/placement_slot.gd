@@ -8,6 +8,10 @@ extends Node3D
 @onready var _interactable: Interactable = $InteractableBase
 @onready var _item_position: Marker3D = $ItemPosition
 
+@export_group("Item Restrictions")
+@export var restrict_item_types := false
+@export_flags("Ingredient", "Food", "Container", "Tool") var accepted_item_types := 15
+
 var placed_item: RigidBody3D = null
 var _snap_queued := false
 
@@ -217,10 +221,13 @@ func _update_interaction_prompt() -> void:
 		if is_instance_valid(held_item):
 			_interactable.set_prompt_text("Slot Occupied")
 		else:
-			_interactable.set_prompt_text("Retrieve Item")
+			_interactable.set_prompt_text("Pick Up Item")
 
 	elif is_instance_valid(held_item):
-		_interactable.set_prompt_text("Place Item")
+		if can_accept_item(held_item):
+			_interactable.set_prompt_text("Place Item")
+		else:
+			_interactable.set_prompt_text("Can't be placed")
 
 	else:
 		_interactable.set_prompt_text("Empty Slot")
@@ -231,3 +238,19 @@ func get_ui_anchor_item() -> Node3D:
 		return placed_item
 
 	return null
+
+func can_accept_item(item: RigidBody3D) -> bool:
+	if not is_instance_valid(item):
+		return false
+
+	if not restrict_item_types:
+		return true
+
+	var data := item.get("item_data") as ItemData
+
+	if data == null:
+		return false
+
+	var item_flag := 1 << int(data.item_type)
+
+	return (accepted_item_types & item_flag) != 0

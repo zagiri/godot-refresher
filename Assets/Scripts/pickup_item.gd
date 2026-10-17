@@ -1,48 +1,109 @@
 
 extends RigidBody3D
 
-enum ItemState {
-	WORLD,
-	HELD,
-	PLACED
-}
+enum ItemState { WORLD, HELD, PLACED }
 
 var item_state := ItemState.WORLD
+
+@export_group("Item Data")
+@export var item_data: ItemData
 
 @export_group("Pickup")
 @export var hold_offset := Vector3(0.0, 1.0, 1.0)
 
 @export_group("Multiplayer")
-@export var physics_sync_rate := 0.1
+@export var physics_sync_rate := 0.05
+@export var interpolation_speed := 15.0
+
+@export_group("Network Optimization")
+@export var position_threshold := 0.02
+@export var rotation_threshold := 2.0
+@export var heartbeat_interval := 0.5
 
 @onready var _interactable: Interactable = $InteractableBase
-@onready var _equipment_ui: EquipmentUI = $EquipmentUI
 
 var held_by: CharacterBody3D = null
 var placed_in: Node3D = null
 
 var _original_collision_layer: int
 var _original_collision_mask: int
+
 var _physics_sync_timer := 0.0
+var _heartbeat_timer := 0.0
 
 var _pending_holder_id := 0
 var _pending_slot_path := NodePath("")
 
+var _target_transform := Transform3D.IDENTITY
+var _has_physics_snapshot := false
+
+var _last_sent_transform := Transform3D.IDENTITY
+var _has_sent_physics := false
+
+var _was_sleeping := false
+var _remote_sleeping := false
+
+var _physics_sequence := 0
+var _last_received_sequence := -1
+
 
 func _ready() -> void:
-	_equipment_ui.hide_status()
-	_equipment_ui.hide_prompt()
-	
 	_original_collision_layer = collision_layer
 	_original_collision_mask = collision_mask
 
 	_interactable.interacted.connect(_on_interacted)
 	_interactable.interaction_action = "Pick up"
 
+	if item_data != null and not item_data.item_name.is_empty():
+		_interactable.set_prompt_text("Pick up " + item_data.item_name)
+	else:
+		_interactable.set_prompt_text("Pick up " + name)
+
 	add_to_group("sync_pickup_items")
 
-	if not multiplayer.is_server():
+	_target_transform = global_transform
+	_last_sent_transform = global_transform
+
+	if multiplayer.is_server():
+		_was_sleeping = sleeping
+	else:
 		freeze = true
+
+
+func _process(delta: float) -> void:
+	if multiplayer.is_server():
+		return
+
+	if item_state != ItemState.WORLD:
+		return
+
+	if not _has_physics_snapshot:
+		return
+
+	if _pending_holder_id != 0 or not _pending_slot_path.is_empty():
+		return
+
+	var weight: float = 1.0 - exp(
+		-maxf(interpolation_speed, 0.0) * delta
+	)
+
+	global_transform = global_transform.interpolate_with(
+		_target_transform,
+		weight
+	)
+
+	if _remote_sleeping:
+		var position_close := global_position.distance_to(
+			_target_transform.origin
+		) < 0.005
+
+		var rotation_close := global_basis.get_rotation_quaternion().angle_to(
+			_target_transform.basis.get_rotation_quaternion()
+		) < deg_to_rad(0.5)
+
+		if position_close and rotation_close:
+			global_transform = _target_transform
+			_has_physics_snapshot = false
 
 
 func _physics_process(delta: float) -> void:
@@ -77,16 +138,99 @@ func _physics_process(delta: float) -> void:
 	if not multiplayer.is_server():
 		return
 
+	_update_sleep_state()
+
+	if sleeping:
+		return
+
 	_physics_sync_timer += delta
+	_heartbeat_timer += delta
 
 	if _physics_sync_timer >= physics_sync_rate:
 		_physics_sync_timer = 0.0
+		_send_physics_if_needed()
 
-		_sync_physics.rpc(
-			global_transform,
-			linear_velocity,
-			angular_velocity
+
+func _send_physics_if_needed() -> void:
+	var should_send := not _has_sent_physics
+
+	if _has_sent_physics:
+		var position_difference := global_position.distance_to(
+			_last_sent_transform.origin
 		)
+
+		var rotation_difference := rad_to_deg(
+			global_basis.get_rotation_quaternion().angle_to(
+				_last_sent_transform.basis.get_rotation_quaternion()
+			)
+		)
+
+		should_send = (
+			position_difference >= position_threshold
+			or rotation_difference >= rotation_threshold
+			or _heartbeat_timer >= heartbeat_interval
+		)
+
+	if not should_send:
+		return
+
+	_physics_sequence += 1
+
+	_sync_physics.rpc(
+		_physics_sequence,
+		global_transform,
+		linear_velocity,
+		angular_velocity
+	)
+
+	_last_sent_transform = global_transform
+	_has_sent_physics = true
+	_heartbeat_timer = 0.0
+
+
+func _update_sleep_state() -> void:
+	if sleeping == _was_sleeping:
+		return
+
+	_was_sleeping = sleeping
+	_physics_sequence += 1
+
+	_sync_sleep_state.rpc(
+		_physics_sequence,
+		global_transform,
+		sleeping
+	)
+
+	if sleeping:
+		_has_sent_physics = false
+	else:
+		# Send a fresh physics snapshot after waking.
+		_has_sent_physics = false
+		_physics_sync_timer = physics_sync_rate
+		_heartbeat_timer = 0.0
+
+
+@rpc("authority", "call_remote", "reliable")
+func _sync_sleep_state(
+	sequence: int,
+	item_transform: Transform3D,
+	is_sleeping: bool
+) -> void:
+	if multiplayer.is_server() or item_state != ItemState.WORLD:
+		return
+
+	if sequence <= _last_received_sequence:
+		return
+
+	_last_received_sequence = sequence
+	_remote_sleeping = is_sleeping
+
+	_target_transform = item_transform
+	_has_physics_snapshot = true
+
+	if is_sleeping:
+		linear_velocity = Vector3.ZERO
+		angular_velocity = Vector3.ZERO
 
 
 func _on_interacted(player: Node) -> void:
@@ -152,6 +296,8 @@ func _apply_pickup_local(peer_id: int) -> void:
 		_pending_holder_id = peer_id
 		_pending_slot_path = NodePath("")
 
+		_reset_client_physics()
+
 		freeze = true
 		collision_layer = 0
 		collision_mask = 0
@@ -176,6 +322,8 @@ func _apply_pickup_local(peer_id: int) -> void:
 
 	player.set("held_item", self)
 	item_state = ItemState.HELD
+
+	_reset_client_physics()
 
 	_interactable.set_interaction_enabled(false)
 	_interactable.hide_prompt()
@@ -274,8 +422,10 @@ func _apply_drop_local(drop_transform: Transform3D) -> void:
 	_pending_slot_path = NodePath("")
 
 	item_state = ItemState.WORLD
-
 	global_transform = drop_transform
+
+	_reset_client_physics()
+	_target_transform = drop_transform
 
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
@@ -287,6 +437,10 @@ func _apply_drop_local(drop_transform: Transform3D) -> void:
 
 	if multiplayer.is_server():
 		sleeping = false
+		_was_sleeping = false
+		_has_sent_physics = false
+		_physics_sync_timer = 0.0
+		_heartbeat_timer = 0.0
 
 	_interactable.set_interaction_enabled(true)
 
@@ -307,6 +461,10 @@ func place_in_slot(slot: Node3D) -> void:
 	if slot.get_node_or_null("ItemPosition") == null:
 		return
 
+	if slot.has_method("can_accept_item"):
+		if not bool(slot.call("can_accept_item", self)):
+			return
+
 	_apply_placement.rpc(slot.get_path())
 
 
@@ -320,6 +478,7 @@ func _apply_placement_local(slot_path: NodePath) -> void:
 
 	if slot == null:
 		_pending_slot_path = slot_path
+		_reset_client_physics()
 		return
 
 	var marker := slot.get_node_or_null("ItemPosition") as Marker3D
@@ -343,9 +502,13 @@ func _apply_placement_local(slot_path: NodePath) -> void:
 	item_state = ItemState.PLACED
 	placed_in = slot
 
+	_reset_client_physics()
+
 	slot.set("placed_item", self)
 
-	var slot_interactable := slot.get_node_or_null("InteractableBase") as Interactable
+	var slot_interactable := slot.get_node_or_null(
+		"InteractableBase"
+	) as Interactable
 
 	if slot_interactable != null:
 		slot_interactable.interaction_action = "Retrieve"
@@ -354,6 +517,7 @@ func _apply_placement_local(slot_path: NodePath) -> void:
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 
+	# Keep collision enabled for stacked items.
 	collision_layer = _original_collision_layer
 	collision_mask = _original_collision_mask
 
@@ -429,7 +593,9 @@ func _clear_slot_reference() -> void:
 	if placed_in.get("placed_item") == self:
 		placed_in.set("placed_item", null)
 
-	var slot_interactable := placed_in.get_node_or_null("InteractableBase") as Interactable
+	var slot_interactable := placed_in.get_node_or_null(
+		"InteractableBase"
+	) as Interactable
 
 	if slot_interactable != null:
 		slot_interactable.interaction_action = "Place"
@@ -437,20 +603,26 @@ func _clear_slot_reference() -> void:
 
 @rpc("authority", "call_remote", "unreliable_ordered")
 func _sync_physics(
+	sequence: int,
 	item_transform: Transform3D,
 	item_velocity: Vector3,
 	item_angular_velocity: Vector3
 ) -> void:
-	if multiplayer.is_server():
-		return
-
-	if item_state != ItemState.WORLD:
+	if multiplayer.is_server() or item_state != ItemState.WORLD:
 		return
 
 	if _pending_holder_id != 0 or not _pending_slot_path.is_empty():
 		return
 
-	global_transform = item_transform
+	if sequence <= _last_received_sequence:
+		return
+
+	_last_received_sequence = sequence
+	_remote_sleeping = false
+
+	_target_transform = item_transform
+	_has_physics_snapshot = true
+
 	linear_velocity = item_velocity
 	angular_velocity = item_angular_velocity
 
@@ -475,7 +647,9 @@ func send_current_state(peer_id: int) -> void:
 		slot_path,
 		global_transform,
 		linear_velocity,
-		angular_velocity
+		angular_velocity,
+		sleeping,
+		_physics_sequence
 	)
 
 
@@ -486,7 +660,9 @@ func _receive_current_state(
 	slot_path: NodePath,
 	item_transform: Transform3D,
 	item_velocity: Vector3,
-	item_angular_velocity: Vector3
+	item_angular_velocity: Vector3,
+	is_sleeping: bool,
+	sequence: int
 ) -> void:
 	if multiplayer.is_server():
 		return
@@ -494,6 +670,12 @@ func _receive_current_state(
 	match state:
 		ItemState.WORLD:
 			_apply_drop_local(item_transform)
+
+			_target_transform = item_transform
+			_has_physics_snapshot = true
+			_remote_sleeping = is_sleeping
+			_last_received_sequence = sequence
+
 			linear_velocity = item_velocity
 			angular_velocity = item_angular_velocity
 
@@ -504,6 +686,11 @@ func _receive_current_state(
 		ItemState.PLACED:
 			if not slot_path.is_empty():
 				_apply_placement_local(slot_path)
+
+
+func _reset_client_physics() -> void:
+	_has_physics_snapshot = false
+	_remote_sleeping = false
 
 
 func _get_player(peer_id: int) -> CharacterBody3D:
@@ -550,7 +737,10 @@ func _wake_nearby_items() -> void:
 	query.collide_with_bodies = true
 	query.exclude = [get_rid()]
 
-	var results := get_world_3d().direct_space_state.intersect_shape(query, 32)
+	var results := get_world_3d().direct_space_state.intersect_shape(
+		query,
+		32
+	)
 
 	for result in results:
 		var body := result["collider"] as RigidBody3D

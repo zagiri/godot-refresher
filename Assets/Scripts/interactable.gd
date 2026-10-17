@@ -27,7 +27,7 @@ func get_interaction_text() -> String:
 	if not _custom_prompt.is_empty():
 		return _custom_prompt
 
-	return interaction_action + " " + get_parent().name
+	return interaction_action
 
 
 # Show prompt when targeted

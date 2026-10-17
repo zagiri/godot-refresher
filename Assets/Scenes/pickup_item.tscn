@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://d4fssrhm1wsm7" path="res://Assets/Scripts/pickup_item.gd" id="1_dxmdk"]
 [ext_resource type="PackedScene" uid="uid://drintcipmsay8" path="res://Assets/Scenes/interactableBase.tscn" id="1_hbd0p"]
-[ext_resource type="PackedScene" uid="uid://b02blxafsq1bc" path="res://Assets/Models/gltf/pot_A.gltf" id="2_tihby"]
 [ext_resource type="PackedScene" uid="uid://cwnrkkiqmdicq" path="res://Assets/Scenes/equipment_ui.tscn" id="4_t2bxa"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_tihby"]
@@ -15,10 +14,7 @@ collision_mask = 3
 continuous_cd = true
 script = ExtResource("1_dxmdk")
 
-[node name="pot_A2" parent="." unique_id=519161249 instance=ExtResource("2_tihby")]
-
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=19409569]
-transform = Transform3D(1, 0, 0, 0, 0.6, 0, 0, 0, 1, 0, 0.3, 0)
 shape = SubResource("BoxShape3D_tihby")
 
 [node name="InteractableBase" parent="." unique_id=421331263 instance=ExtResource("1_hbd0p")]

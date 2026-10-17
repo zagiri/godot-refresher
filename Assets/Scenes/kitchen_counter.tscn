@@ -15,3 +15,5 @@ shape = SubResource("BoxShape3D_xrivr")
 
 [node name="PlacementSlot" parent="." unique_id=627141891 instance=ExtResource("2_jvidb")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0230359, 0)
+restrict_item_types = true
+accepted_item_types = 4
