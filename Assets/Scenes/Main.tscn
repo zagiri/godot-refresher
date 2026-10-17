@@ -3,7 +3,9 @@
 [ext_resource type="Script" uid="uid://ca7nwpnuka0kq" path="res://Assets/Scripts/main.gd" id="1_ygaiq"]
 [ext_resource type="PackedScene" uid="uid://cuqecmqlocj5v" path="res://Assets/Scenes/environment.tscn" id="2_wkehv"]
 [ext_resource type="PackedScene" uid="uid://t54jgghiavj1" path="res://Assets/Scenes/fryer.tscn" id="4_2qpql"]
-[ext_resource type="PackedScene" uid="uid://cfg3ciunm83rm" path="res://Assets/Scenes/pickup_item.tscn" id="4_gjahs"]
+[ext_resource type="PackedScene" uid="uid://da1v1j4dqalmq" path="res://Assets/Scenes/kitchen_counter.tscn" id="5_g2icf"]
+[ext_resource type="PackedScene" uid="uid://d5wfaipboiod" path="res://Assets/Scenes/Items/burger_bun.tscn" id="5_gjahs"]
+[ext_resource type="PackedScene" uid="uid://bluub3tar8xuq" path="res://Assets/Scenes/Items/cooking_pot.tscn" id="6_g2icf"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_xrivr"]
 
@@ -56,8 +58,15 @@ spawn_path = NodePath("..")
 [node name="Fryer" parent="." unique_id=352370809 instance=ExtResource("4_2qpql")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45940757, -7.440049)
 
-[node name="PickupItem2" parent="." unique_id=855610101 instance=ExtResource("4_gjahs")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.722657, 5.454261, 0.5925045)
+[node name="WorldItems" type="Node3D" parent="." unique_id=273813834]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0695314, 0, 0)
 
-[node name="PickupItem" parent="." unique_id=1990698934 instance=ExtResource("4_gjahs")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3613286, 2.7271304, 0.29625225)
+[node name="KitchenCounter" parent="WorldItems" unique_id=1866416324 instance=ExtResource("5_g2icf")]
+
+[node name="KitchenCounter2" parent="WorldItems" unique_id=1152355966 instance=ExtResource("5_g2icf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9938588, 0, 0)
+
+[node name="BurgerBun" parent="." unique_id=545605102 instance=ExtResource("5_gjahs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9254825, 0)
+
+[node name="CookingPot" parent="." unique_id=1781841458 instance=ExtResource("6_g2icf")]

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://bh4rkhjg71u3x"]
+
+[ext_resource type="Script" uid="uid://b8051ngdhtecy" path="res://Assets/Scripts/item_data.gd" id="1_7vult"]
+
+[resource]
+script = ExtResource("1_7vult")
+item_name = "Raw Patty"
+description = "An uncooked burger patty."
+metadata/_custom_type_script = "uid://b8051ngdhtecy"

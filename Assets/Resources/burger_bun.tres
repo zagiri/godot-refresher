@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cxa6y2lhuv881"]
+
+[ext_resource type="Script" uid="uid://b8051ngdhtecy" path="res://Assets/Scripts/item_data.gd" id="1_44wdt"]
+
+[resource]
+script = ExtResource("1_44wdt")
+item_name = "Burger Bun"
+description = "Plain tasty burger bun!"
+metadata/_custom_type_script = "uid://b8051ngdhtecy"

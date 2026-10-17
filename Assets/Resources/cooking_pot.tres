@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://djxg1yji3xc0e"]
+
+[ext_resource type="Script" uid="uid://b8051ngdhtecy" path="res://Assets/Scripts/item_data.gd" id="1_fsmcf"]
+
+[resource]
+script = ExtResource("1_fsmcf")
+item_name = "Cooking Pot"
+description = "Reliable Cooking pot."
+item_type = 2
+metadata/_custom_type_script = "uid://b8051ngdhtecy"

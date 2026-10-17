@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://da1v1j4dqalmq"]
+
+[ext_resource type="PackedScene" uid="uid://cs06ym7ff7sne" path="res://Assets/Models/gltf/kitchencounter_straight_A.gltf" id="1_kcajh"]
+[ext_resource type="PackedScene" uid="uid://cf5ovn3aioghn" path="res://Assets/Scenes/placement_slot.tscn" id="2_jvidb"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xrivr"]
+
+[node name="KitchenCounter" type="StaticBody3D" unique_id=1866416324]
+
+[node name="kitchencounter_straight_A2" parent="." unique_id=1351493409 instance=ExtResource("1_kcajh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1706880034]
+transform = Transform3D(2, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_xrivr")
+
+[node name="PlacementSlot" parent="." unique_id=627141891 instance=ExtResource("2_jvidb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0230359, 0)
+restrict_item_types = true
+accepted_item_types = 4

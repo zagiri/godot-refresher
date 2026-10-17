@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://cf5ovn3aioghn"]
+
+[ext_resource type="PackedScene" uid="uid://drintcipmsay8" path="res://Assets/Scenes/interactableBase.tscn" id="1_6u5ih"]
+[ext_resource type="Script" uid="uid://bhommkq45x0h7" path="res://Assets/Scripts/placement_slot.gd" id="1_lax63"]
+[ext_resource type="PackedScene" uid="uid://cwnrkkiqmdicq" path="res://Assets/Scenes/equipment_ui.tscn" id="3_q6wb3"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xrivr"]
+size = Vector3(0.8, 0.5, 0.8)
+
+[node name="PlacementSlot" type="Node3D" unique_id=627141891]
+script = ExtResource("1_lax63")
+
+[node name="EquipmentUI" parent="." unique_id=1293692385 instance=ExtResource("3_q6wb3")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+base_scale = 0.5
+min_scale = 0.2
+max_scale = 0.5
+
+[node name="InteractableBase" parent="." unique_id=421331263 instance=ExtResource("1_6u5ih")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0.5, 0)
+collision_mask = 1
+
+[node name="Area3D" parent="InteractableBase" index="0" unique_id=1476203914]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("BoxShape3D_xrivr")
+
+[node name="ItemPosition" type="Marker3D" parent="." unique_id=767896115]
+
+[editable path="InteractableBase"]
