@@ -1,4 +1,3 @@
-
 class_name EquipmentUI
 extends Node3D
 
@@ -6,6 +5,10 @@ extends Node3D
 # ==================================================
 # DISTANCE SCALING
 # ==================================================
+
+@export_group("Prompt Layout")
+@export_range(120.0, 800.0, 1.0) var prompt_text_max_width := 360.0
+
 
 @export_group("Distance Scaling")
 @export var reference_distance := 5.0
@@ -81,9 +84,16 @@ extends Node3D
 # PROMPT UI REFERENCES
 # ==================================================
 
-@onready var _key_label: Label = $PromptViewport/InteractionUI/PromptPanel/HBoxContainer/KeyPanel/KeyLabel
+@onready var _key_label: Label = $PromptViewport/InteractionUI/PromptPanel/PromptRows/HBoxContainer/KeyPanel/KeyLabel
 
-@onready var _action_label: Label = $PromptViewport/InteractionUI/PromptPanel/HBoxContainer/ActionLabel
+@onready var _action_label: Label = $PromptViewport/InteractionUI/PromptPanel/PromptRows/HBoxContainer/ActionLabel
+
+@onready var _secondary_row: HBoxContainer = $PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow
+@onready var _secondary_key: Label = $PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow/KeyPanel/KeyLabel
+@onready var _secondary_action: Label = $PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow/ActionLabel
+
+var _prompt_layout_queued := false
+const PROMPT_PADDING := 4
 
 
 # ==================================================
@@ -121,6 +131,10 @@ var _equipment_top := Vector3.ZERO
 # Dynamic target position.
 var _target_top := Vector3.ZERO
 
+# Cache references, not bounds: transforms and visibility can change.
+var _mesh_cache: Dictionary = {}
+var _was_ui_active := false
+
 
 # ==================================================
 # INITIALIZATION
@@ -142,6 +156,10 @@ func _ready() -> void:
 
 	_prompt_panel.show()
 	_key_label.text = "E"
+	_secondary_row.hide()
+	_prompt_panel.minimum_size_changed.connect(_queue_prompt_layout)
+	_prompt_panel.resized.connect(_queue_prompt_layout)
+	_queue_prompt_layout()
 
 	set_title("Equipment")
 	set_status("Idle")
@@ -162,11 +180,22 @@ func _ready() -> void:
 # ==================================================
 
 func _process(delta: float) -> void:
+	if not _status_sprite.visible and not _prompt_sprite.visible:
+		_was_ui_active = false
+		return
+
 	_calculate_equipment_top()
+	_update_dynamic_target()
 	_update_distance_scale(delta)
 	_update_panel_scale()
-	_update_dynamic_target()
-	_update_panel_positions(delta)
+
+	# Fade-out remains active until the sprites actually hide.
+	if not _status_sprite.visible and not _prompt_sprite.visible:
+		_was_ui_active = false
+		return
+
+	_update_panel_positions(delta, not _was_ui_active)
+	_was_ui_active = true
 
 
 # ==================================================
@@ -174,34 +203,36 @@ func _process(delta: float) -> void:
 # ==================================================
 
 func set_title(value: String) -> void:
-	_title_label.text = value
+	if _title_label.text != value:
+		_title_label.text = value
 
 
 func set_status(value: String) -> void:
-	_status_label.text = value
+	if _status_label.text != value:
+		_status_label.text = value
 
 
 func set_progress(value: float) -> void:
-	_progress_bar.value = clampf(
-		value,
-		0.0,
-		100.0
-	)
+	var clamped := clampf(value, 0.0, 100.0)
+
+	if not is_equal_approx(_progress_bar.value, clamped):
+		_progress_bar.value = clamped
 
 
 func set_timer(seconds: float) -> void:
-	_timer_label.text = (
-		"%.1fs remaining" % seconds
-		if seconds > 0.0
-		else ""
-	)
+	var text := "%.1fs remaining" % seconds if seconds > 0.0 else ""
+
+	if _timer_label.text != text:
+		_timer_label.text = text
 
 
 # ==================================================
 # INTERACTION PROMPT
 # ==================================================
 
+# Existing single-row callers continue to work.
 func show_prompt(action_text: String) -> void:
+	set_secondary_prompt("")
 	set_prompt_text(action_text)
 
 	if _prompt_visible:
@@ -329,7 +360,7 @@ func _update_distance_scale(delta: float) -> void:
 	if camera == null:
 		return
 
-	var distance: float = global_position.distance_to(
+	var distance: float = _target_top.distance_to(
 		camera.global_position
 	)
 
@@ -427,6 +458,37 @@ func _update_dynamic_target() -> void:
 # FIND TOP OF A 3D NODE
 # ==================================================
 
+# Call after adding/removing mesh nodes at runtime.
+# Rotation, movement, visibility and mesh-resource changes need no refresh.
+func refresh_mesh_cache() -> void:
+	_mesh_cache.clear()
+
+
+func _get_target_meshes(target: Node3D) -> Array[MeshInstance3D]:
+	var target_id := target.get_instance_id()
+
+	if _mesh_cache.has(target_id):
+		return _mesh_cache[target_id]
+
+	# Only retain the equipment and its current dynamic item.
+	if target != get_parent():
+		var equipment_id := get_parent().get_instance_id()
+		for cached_id in _mesh_cache.keys():
+			if cached_id != equipment_id:
+				_mesh_cache.erase(cached_id)
+
+	var meshes: Array[MeshInstance3D] = []
+
+	if target is MeshInstance3D:
+		meshes.append(target as MeshInstance3D)
+
+	for child in target.find_children("*", "MeshInstance3D", true, false):
+		meshes.append(child as MeshInstance3D)
+
+	_mesh_cache[target_id] = meshes
+	return meshes
+
+
 func _calculate_node_top(target: Node3D) -> Vector3:
 	if not is_instance_valid(target):
 		return _equipment_top
@@ -434,57 +496,34 @@ func _calculate_node_top(target: Node3D) -> Vector3:
 	var bounds := AABB()
 	var found_mesh := false
 
-	# Check the target itself if it is a mesh.
-	if target is MeshInstance3D:
-		var own_mesh := target as MeshInstance3D
-
-		if own_mesh.mesh != null:
-			bounds = (
-				own_mesh.global_transform
-				* own_mesh.get_aabb()
-			)
-			found_mesh = true
-
-	# Check meshes inside the target.
-	for child in target.find_children(
-		"*",
-		"MeshInstance3D",
-		true,
-		false
-	):
-		var mesh := child as MeshInstance3D
-
-		if mesh == null or mesh.mesh == null:
+	for mesh in _get_target_meshes(target):
+		if not is_instance_valid(mesh):
 			continue
 
-		# Convert the mesh bounding box into
-		# global space.
-		var mesh_bounds: AABB = (
-			mesh.global_transform
-			* mesh.get_aabb()
-		)
+		if mesh.mesh == null or not mesh.is_visible_in_tree():
+			continue
 
-		if not found_mesh:
+		# Transform each mesh's bounds before finding the world-space top.
+		var mesh_bounds: AABB = mesh.global_transform * mesh.get_aabb()
+
+		if found_mesh:
+			bounds = bounds.merge(mesh_bounds)
+		else:
 			bounds = mesh_bounds
 			found_mesh = true
-		else:
-			bounds = bounds.merge(mesh_bounds)
 
 	if not found_mesh:
 		return target.global_position
 
-	return Vector3(
-		bounds.get_center().x,
-		bounds.end.y,
-		bounds.get_center().z
-	)
+	var center := bounds.get_center()
+	return Vector3(center.x, bounds.end.y, center.z)
 
 
 # ==================================================
 # PANEL POSITIONING
 # ==================================================
 
-func _update_panel_positions(delta: float) -> void:
+func _update_panel_positions(delta: float, snap := false) -> void:
 	# Measure visible panel dimensions.
 	var status_height: float = (
 		_status_panel.size.y
@@ -517,7 +556,7 @@ func _update_panel_positions(delta: float) -> void:
 		* _prompt_alpha
 	)
 
-	var weight: float = 1.0 if instant_follow else (
+	var weight: float = 1.0 if instant_follow or snap else (
 		1.0 - exp(-maxf(follow_speed, 0.0) * delta)
 	)
 
@@ -555,49 +594,8 @@ func _update_panel_positions(delta: float) -> void:
 func _calculate_equipment_top() -> void:
 	var equipment := get_parent() as Node3D
 
-	if equipment == null:
-		return
-
-	var bounds := AABB()
-	var found_mesh := false
-
-	for child in equipment.find_children(
-		"*",
-		"MeshInstance3D",
-		true,
-		false
-	):
-		var mesh := child as MeshInstance3D
-
-		if mesh == null or mesh.mesh == null:
-			continue
-
-		var mesh_transform: Transform3D = (
-			equipment.global_transform.affine_inverse()
-			* mesh.global_transform
-		)
-
-		var mesh_bounds: AABB = (
-			mesh_transform * mesh.get_aabb()
-		)
-
-		if not found_mesh:
-			bounds = mesh_bounds
-			found_mesh = true
-		else:
-			bounds = bounds.merge(mesh_bounds)
-
-	if not found_mesh:
-		_equipment_top = equipment.global_position
-		return
-
-	var top_local := Vector3(
-		bounds.get_center().x,
-		bounds.end.y,
-		bounds.get_center().z
-	)
-
-	_equipment_top = equipment.to_global(top_local)
+	if equipment != null:
+		_equipment_top = _calculate_node_top(equipment)
 
 
 # ==================================================
@@ -616,6 +614,7 @@ func set_prompt_text(action_text: String) -> void:
 	if not _prompt_visible:
 		_action_label.text = action_text
 		_action_label.modulate.a = 1.0
+		_queue_prompt_layout()
 		return
 
 	_text_tween = create_tween()
@@ -630,6 +629,7 @@ func set_prompt_text(action_text: String) -> void:
 	_text_tween.tween_callback(
 		func() -> void:
 			_action_label.text = action_text
+			_queue_prompt_layout()
 	)
 
 	_text_tween.tween_property(
@@ -676,3 +676,84 @@ func animate_interaction() -> void:
 	).set_ease(
 		Tween.EASE_OUT
 	)
+
+func set_prompt_key(value: String) -> void:
+	if _key_label.text != value:
+		_key_label.text = value
+		_queue_prompt_layout()
+
+
+# Set both rows together. No parsing of slash-separated strings.
+func show_prompts(
+	primary_text: String,
+	primary_key: String = "E",
+	secondary_text: String = "",
+	secondary_key: String = "F"
+) -> void:
+	set_prompt_key(primary_key)
+	set_prompt_text(primary_text)
+	set_secondary_prompt(secondary_text, secondary_key)
+	if not _prompt_visible:
+		_prompt_visible = true
+		_animate_prompt(1.0, 1.0)
+
+
+func set_secondary_prompt(text: String, key_text: String = "F") -> void:
+	var should_show := not text.is_empty()
+	if (
+		_secondary_action.text == text
+		and _secondary_key.text == key_text
+		and _secondary_row.visible == should_show
+	):
+		return
+
+	_secondary_action.text = text
+	_secondary_key.text = key_text
+	_secondary_row.visible = should_show
+	_queue_prompt_layout()
+
+
+# Coalesce text/visibility/container changes into one deferred layout pass.
+func _queue_prompt_layout() -> void:
+	if _prompt_layout_queued or not is_inside_tree():
+		return
+	_prompt_layout_queued = true
+	_resize_prompt.call_deferred()
+
+
+func _resize_prompt() -> void:
+	_prompt_layout_queued = false
+	if not is_inside_tree():
+		return
+
+	_size_prompt_label(_action_label)
+	if _secondary_row.visible:
+		_size_prompt_label(_secondary_action)
+
+	# Containers propagate wrapped text height through minimum_size_changed.
+	# Resetting to the minimum lets the panel shrink as well as grow.
+	_prompt_panel.reset_size()
+	_prompt_panel.position = Vector2.ONE * PROMPT_PADDING
+	var required := Vector2i(
+		ceili(_prompt_panel.size.x) + PROMPT_PADDING * 2,
+		ceili(_prompt_panel.size.y) + PROMPT_PADDING * 2
+	)
+	if _prompt_viewport.size != required:
+		_prompt_viewport.size = required
+
+
+func _size_prompt_label(label: Label) -> void:
+	var font := label.get_theme_font("font")
+	var font_size := label.get_theme_font_size("font_size")
+	var natural_width := 0.0
+	for line in label.text.split("\n"):
+		natural_width = maxf(natural_width, font.get_string_size(
+			line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size
+		).x)
+
+	var width := ceilf(clampf(natural_width + 2.0, 1.0, prompt_text_max_width))
+	if not is_equal_approx(label.custom_minimum_size.x, width):
+		label.custom_minimum_size.x = width
+	# The row keeps this column at its own measured width.
+	if not is_equal_approx(label.size.x, width):
+		label.size.x = width

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://bm1yv477m33k4"]
+
+[ext_resource type="Script" uid="uid://b8051ngdhtecy" path="res://Assets/Scripts/item_data.gd" id="1_bmuvm"]
+
+[resource]
+script = ExtResource("1_bmuvm")
+item_name = "Stock Carton"
+description = "I wonder what's inside?"
+item_type = 2
+metadata/_custom_type_script = "uid://b8051ngdhtecy"

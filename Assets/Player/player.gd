@@ -663,6 +663,20 @@ func _update_interactable() -> void:
 		_current_interactable.show_prompt()
 
 
+# Current local target, shared with carton and other secondary actions.
+func get_targeted_interactable() -> Interactable:
+	if not is_multiplayer_authority():
+		return null
+
+	if not is_instance_valid(_current_interactable):
+		return null
+
+	if not _current_interactable.interaction_enabled:
+		return null
+
+	return _current_interactable
+
+
 # Handle interaction
 func _handle_interaction() -> void:
 	if not is_multiplayer_authority():

@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" uid="uid://da1v1j4dqalmq" path="res://Assets/Scenes/kitchen_counter.tscn" id="5_g2icf"]
 [ext_resource type="PackedScene" uid="uid://d5wfaipboiod" path="res://Assets/Scenes/Items/burger_bun.tscn" id="5_gjahs"]
 [ext_resource type="PackedScene" uid="uid://bluub3tar8xuq" path="res://Assets/Scenes/Items/cooking_pot.tscn" id="6_g2icf"]
+[ext_resource type="PackedScene" uid="uid://bmtcfba82vuy7" path="res://Assets/Scenes/Items/stock_carton.tscn" id="7_8bicx"]
+[ext_resource type="PackedScene" uid="uid://bk1yiblib43a2" path="res://Assets/Scenes/Items/frozen_fries_bag.tscn" id="8_fxu2d"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_xrivr"]
 
@@ -23,6 +25,10 @@ data = PackedVector3Array(0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0
 
 [node name="Main" type="Node3D" unique_id=1085538965]
 script = ExtResource("1_ygaiq")
+spawnable_items = Array[PackedScene]([ExtResource("8_fxu2d")])
+
+[node name="SpawnedItems" type="Node3D" parent="." unique_id=1019497248]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.815439, 1.0114548, 0)
 
 [node name="Environment" parent="." unique_id=1113474916 instance=ExtResource("2_wkehv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 3, -2)
@@ -51,12 +57,15 @@ shape = SubResource("ConcavePolygonShape3D_wkehv")
 [node name="SpawnPoint" type="Node3D" parent="." unique_id=685197651]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
 
+[node name="ItemSpawner" type="MultiplayerSpawner" parent="." unique_id=1547179108]
+spawn_path = NodePath("../SpawnedItems")
+
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1233702619]
 _spawnable_scenes = PackedStringArray("uid://cps4dh3kjo074")
 spawn_path = NodePath("..")
 
 [node name="Fryer" parent="." unique_id=352370809 instance=ExtResource("4_2qpql")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45940757, -7.440049)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.032216072, -7.440049)
 
 [node name="WorldItems" type="Node3D" parent="." unique_id=273813834]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0695314, 0, 0)
@@ -67,6 +76,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0695314, 0, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9938588, 0, 0)
 
 [node name="BurgerBun" parent="." unique_id=545605102 instance=ExtResource("5_gjahs")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9254825, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45326495, -0.17414892, -0.42311335)
 
 [node name="CookingPot" parent="." unique_id=1781841458 instance=ExtResource("6_g2icf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.212202, 1.5425391, -0.060229123)
+
+[node name="StockCarton" parent="." unique_id=855610101 instance=ExtResource("7_8bicx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.977827, 2.3263254, -0.014445543)

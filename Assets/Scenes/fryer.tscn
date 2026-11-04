@@ -1,31 +1,37 @@
 [gd_scene format=3 uid="uid://t54jgghiavj1"]
 
-[ext_resource type="PackedScene" uid="uid://4cda7wrqdk06" path="res://Assets/Models/Fryer.glb" id="1_h1chr"]
 [ext_resource type="Script" uid="uid://8p5hw45mpth7" path="res://Assets/Scripts/fryer.gd" id="2_a1txv"]
+[ext_resource type="PackedScene" uid="uid://bv8mi00hbu405" path="res://Assets/Models/test/Fryer_Triple.glb" id="2_diswe"]
 [ext_resource type="PackedScene" uid="uid://drintcipmsay8" path="res://Assets/Scenes/interactableBase.tscn" id="2_iur38"]
 [ext_resource type="PackedScene" uid="uid://cwnrkkiqmdicq" path="res://Assets/Scenes/equipment_ui.tscn" id="6_cu3nw"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_xrivr"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_wqfct"]
+size = Vector3(1.6, 1.7, 1)
 
-[node name="Fryer" unique_id=352370809 instance=ExtResource("1_h1chr")]
+[sub_resource type="BoxShape3D" id="BoxShape3D_diswe"]
+size = Vector3(1.2, 1.2, 1)
+
+[node name="fryer" type="Node3D" unique_id=2139479282]
 script = ExtResource("2_a1txv")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="." index="0" unique_id=2049486614]
+[node name="Fryer_Triple2" parent="." unique_id=2141891609 instance=ExtResource("2_diswe")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=592162003]
 transform = Transform3D(1.775, 0, 0, 0, 1.775, 0, 0, 0, 1.775, 0, 1.2448397, 0)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" index="0" unique_id=1900840660]
-shape = SubResource("BoxShape3D_xrivr")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Collision" unique_id=2100680090]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.08193969, -0.100000024, 0)
+shape = SubResource("BoxShape3D_wqfct")
 
-[node name="Mesh" parent="." index="1" unique_id=133977652]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-
-[node name="InteractableBase" parent="." index="2" unique_id=421331263 instance=ExtResource("2_iur38")]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 1.5956999, 0)
+[node name="InteractableBase" parent="." unique_id=421331263 instance=ExtResource("2_iur38")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 1.2190727, 0)
 
 [node name="Area3D" parent="InteractableBase" index="0" unique_id=1476203914]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("BoxShape3D_diswe")
 
-[node name="EquipmentUI" parent="." index="3" unique_id=1293692385 instance=ExtResource("6_cu3nw")]
+[node name="EquipmentUI" parent="." unique_id=1293692385 instance=ExtResource("6_cu3nw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8699665, 0)
 
 [editable path="InteractableBase"]
