@@ -3,9 +3,10 @@
 [ext_resource type="PackedScene" uid="uid://cfg3ciunm83rm" path="res://Assets/Scenes/pickup_item.tscn" id="1_o76xw"]
 [ext_resource type="Texture2D" uid="uid://clc6imkyhrqyj" path="res://Assets/Models/gltf/textures/MainTexture.png" id="2_18760"]
 [ext_resource type="Resource" uid="uid://bm1yv477m33k4" path="res://Assets/Resources/stock_carton.tres" id="2_e23sn"]
-[ext_resource type="Script" uid="uid://43jlkve71eie" path="res://Assets/Scenes/Items/stock_carton_controller.gd" id="3_34440"]
+[ext_resource type="Script" uid="uid://43jlkve71eie" path="res://Assets/Scripts/stock_carton_controller.gd" id="3_34440"]
 [ext_resource type="Texture2D" uid="uid://bmxfecwbwtseq" path="res://Assets/Models/gltf/textures/Sides.png" id="3_e23sn"]
 [ext_resource type="Texture2D" uid="uid://cn4ygcmrvhe6l" path="res://Assets/Models/gltf/textures/SideEnd.png" id="4_34440"]
+[ext_resource type="PackedScene" uid="uid://bk1yiblib43a2" path="res://Assets/Scenes/Items/frozen_fries_bag.tscn" id="4_ha3l1"]
 [ext_resource type="PackedScene" uid="uid://c5ibfnkiynnxt" path="res://Assets/Models/GLB/FrozenFriesBag.glb" id="7_34440"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_18760"]
@@ -193,7 +194,8 @@ shadow_mesh = SubResource("ArrayMesh_85ds7")
 
 [sub_resource type="Animation" id="Animation_ha3l1"]
 resource_name = "OpenBox"
-length = 0.5
+length = 0.02
+step = 0.01
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -201,7 +203,7 @@ tracks/0/path = NodePath("Box_Closed:visible")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.1),
+"times": PackedFloat32Array(0, 0.02),
 "transitions": PackedFloat32Array(1, 1),
 "update": 1,
 "values": [true, false]
@@ -213,7 +215,7 @@ tracks/1/path = NodePath("Box_Open:visible")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.1),
+"times": PackedFloat32Array(0, 0.02),
 "transitions": PackedFloat32Array(1, 1),
 "update": 1,
 "values": [false, true]
@@ -257,6 +259,8 @@ item_data = ExtResource("2_e23sn")
 
 [node name="CartonController" type="Node" parent="." index="0" unique_id=2025603904]
 script = ExtResource("3_34440")
+contents_scene = ExtResource("4_ha3l1")
+contents_display_scene = ExtResource("7_34440")
 
 [node name="CollisionShape3D" parent="." index="1" unique_id=19409569]
 shape = SubResource("BoxShape3D_18760")
@@ -276,18 +280,6 @@ mesh = SubResource("ArrayMesh_m0v7y")
 
 [node name="Contents" type="Node3D" parent="Box_Open" index="0" unique_id=947749553]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
-
-[node name="Bag1" parent="Box_Open/Contents" index="0" unique_id=1700335463 instance=ExtResource("7_34440")]
-transform = Transform3D(-1.09278474e-07, 0, 2.5, 0, 1.5, 0, -2.5, 0, -1.09278474e-07, 0.31338996, -0.3297065, 0)
-
-[node name="Bag2" parent="Box_Open/Contents" index="1" unique_id=1987994954 instance=ExtResource("7_34440")]
-transform = Transform3D(-1.09278474e-07, 0, 2.5, 0, 1.5, 0, -2.5, 0, -1.09278474e-07, 0.12510192, -0.3297065, 0)
-
-[node name="Bag3" parent="Box_Open/Contents" index="2" unique_id=53702188 instance=ExtResource("7_34440")]
-transform = Transform3D(-1.09278474e-07, 0, 2.5, 0, 1.5, 0, -2.5, 0, -1.09278474e-07, -0.07469964, -0.3297065, 0)
-
-[node name="Bag4" parent="Box_Open/Contents" index="3" unique_id=797677577 instance=ExtResource("7_34440")]
-transform = Transform3D(-1.09278474e-07, 0, 2.5, 0, 1.5, 0, -2.5, 0, -1.09278474e-07, -0.29241556, -0.3297065, 0)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." index="6" unique_id=802209082]
 libraries/ = SubResource("AnimationLibrary_30hcp")

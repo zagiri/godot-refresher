@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cfg3ciunm83rm" path="res://Assets/Scenes/pickup_item.tscn" id="1_l1lqa"]
+[ext_resource type="PackedScene" path="res://Assets/Models/GLB/FrozenNuggetsBag.glb" id="2_oluhw"]
+[ext_resource type="Script" uid="uid://b8051ngdhtecy" path="res://Assets/Scripts/item_data.gd" id="2_uhh2r"]
+
+[sub_resource type="Resource" id="Resource_fxu2d"]
+script = ExtResource("2_uhh2r")
+item_name = "Frozen Nuggets Bag"
+description = "A bag of frozen chicken nuggets."
+metadata/_custom_type_script = "uid://b8051ngdhtecy"
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_oluhw"]
+size = Vector3(0.5, 0.8, 0.2)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_oluhw"]
+
+[node name="FrozenNuggetsBag" unique_id=855610101 instance=ExtResource("1_l1lqa")]
+item_data = SubResource("Resource_fxu2d")
+
+[node name="FrozenNuggetsBag" parent="." index="0" unique_id=1700335463 instance=ExtResource("2_oluhw")]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 0, 0, 0)
+
+[node name="CollisionShape3D" parent="." index="1" unique_id=19409569]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.43, 0)
+shape = SubResource("BoxShape3D_oluhw")
+
+[node name="Area3D" parent="InteractableBase" parent_id_path=PackedInt32Array(421331263) index="0" unique_id=1476203914]
+shape = SubResource("SphereShape3D_oluhw")
+
+[node name="EquipmentUI" parent="." index="3" unique_id=1293692385]
+height_offset = 0.22
+
+[editable path="InteractableBase"]

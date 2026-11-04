@@ -152,7 +152,7 @@ offset_bottom = 53.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_a1txv")
 
-[node name="PromptRows" type="VBoxContainer" parent="PromptViewport/InteractionUI/PromptPanel" unique_id=236332799]
+[node name="PromptRows" type="VBoxContainer" parent="PromptViewport/InteractionUI/PromptPanel"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
@@ -171,31 +171,62 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_xrivr")
 
 [node name="KeyLabel" type="Label" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/HBoxContainer/KeyPanel" unique_id=774848967]
 layout_mode = 2
+mouse_filter = 2
 text = "E"
 
 [node name="ActionLabel" type="Label" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/HBoxContainer" unique_id=1616507505]
 layout_mode = 2
 size_flags_horizontal = 0
+size_flags_vertical = 4
+mouse_filter = 2
 autowrap_mode = 3
 
-[node name="SecondaryRow" type="HBoxContainer" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows" unique_id=1137836015]
+[node name="SecondaryRow" type="HBoxContainer" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 0
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="KeyPanel" type="PanelContainer" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow" unique_id=350283343]
+[node name="KeyPanel" type="PanelContainer" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow"]
 layout_mode = 2
 size_flags_vertical = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_xrivr")
 
-[node name="KeyLabel" type="Label" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow/KeyPanel" unique_id=1118681513]
+[node name="KeyLabel" type="Label" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow/KeyPanel"]
 layout_mode = 2
+mouse_filter = 2
 text = "F"
 
-[node name="ActionLabel" type="Label" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow" unique_id=1250292281]
+[node name="ActionLabel" type="Label" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow"]
 layout_mode = 2
 size_flags_horizontal = 0
+size_flags_vertical = 4
+mouse_filter = 2
+autowrap_mode = 3
+
+[node name="TertiaryRow" type="HBoxContainer" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="KeyPanel" type="PanelContainer" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/TertiaryRow"]
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_xrivr")
+
+[node name="KeyLabel" type="Label" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/TertiaryRow/KeyPanel"]
+layout_mode = 2
+mouse_filter = 2
+text = "G"
+
+[node name="ActionLabel" type="Label" parent="PromptViewport/InteractionUI/PromptPanel/PromptRows/TertiaryRow"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+mouse_filter = 2
 autowrap_mode = 3

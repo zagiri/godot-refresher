@@ -92,6 +92,10 @@ extends Node3D
 @onready var _secondary_key: Label = $PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow/KeyPanel/KeyLabel
 @onready var _secondary_action: Label = $PromptViewport/InteractionUI/PromptPanel/PromptRows/SecondaryRow/ActionLabel
 
+@onready var _tertiary_row: HBoxContainer = $PromptViewport/InteractionUI/PromptPanel/PromptRows/TertiaryRow
+@onready var _tertiary_key: Label = $PromptViewport/InteractionUI/PromptPanel/PromptRows/TertiaryRow/KeyPanel/KeyLabel
+@onready var _tertiary_action: Label = $PromptViewport/InteractionUI/PromptPanel/PromptRows/TertiaryRow/ActionLabel
+
 var _prompt_layout_queued := false
 const PROMPT_PADDING := 4
 
@@ -157,6 +161,7 @@ func _ready() -> void:
 	_prompt_panel.show()
 	_key_label.text = "E"
 	_secondary_row.hide()
+	_tertiary_row.hide()
 	_prompt_panel.minimum_size_changed.connect(_queue_prompt_layout)
 	_prompt_panel.resized.connect(_queue_prompt_layout)
 	_queue_prompt_layout()
@@ -233,6 +238,7 @@ func set_timer(seconds: float) -> void:
 # Existing single-row callers continue to work.
 func show_prompt(action_text: String) -> void:
 	set_secondary_prompt("")
+	set_tertiary_prompt("")
 	set_prompt_text(action_text)
 
 	if _prompt_visible:
@@ -688,11 +694,14 @@ func show_prompts(
 	primary_text: String,
 	primary_key: String = "E",
 	secondary_text: String = "",
-	secondary_key: String = "F"
+	secondary_key: String = "F",
+	tertiary_text: String = "",
+	tertiary_key: String = "G"
 ) -> void:
 	set_prompt_key(primary_key)
 	set_prompt_text(primary_text)
 	set_secondary_prompt(secondary_text, secondary_key)
+	set_tertiary_prompt(tertiary_text, tertiary_key)
 	if not _prompt_visible:
 		_prompt_visible = true
 		_animate_prompt(1.0, 1.0)
@@ -713,6 +722,21 @@ func set_secondary_prompt(text: String, key_text: String = "F") -> void:
 	_queue_prompt_layout()
 
 
+func set_tertiary_prompt(text: String, key_text: String = "G") -> void:
+	var should_show := not text.is_empty()
+	if (
+		_tertiary_action.text == text
+		and _tertiary_key.text == key_text
+		and _tertiary_row.visible == should_show
+	):
+		return
+
+	_tertiary_action.text = text
+	_tertiary_key.text = key_text
+	_tertiary_row.visible = should_show
+	_queue_prompt_layout()
+
+
 # Coalesce text/visibility/container changes into one deferred layout pass.
 func _queue_prompt_layout() -> void:
 	if _prompt_layout_queued or not is_inside_tree():
@@ -729,6 +753,8 @@ func _resize_prompt() -> void:
 	_size_prompt_label(_action_label)
 	if _secondary_row.visible:
 		_size_prompt_label(_secondary_action)
+	if _tertiary_row.visible:
+		_size_prompt_label(_tertiary_action)
 
 	# Containers propagate wrapped text height through minimum_size_changed.
 	# Resetting to the minimum lets the panel shrink as well as grow.

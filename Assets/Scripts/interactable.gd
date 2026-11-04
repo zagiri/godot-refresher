@@ -19,6 +19,8 @@ var _is_targeted := false
 var _custom_prompt := ""
 var _secondary_prompt := ""
 var _secondary_prompt_key := "F"
+var _tertiary_prompt := ""
+var _tertiary_prompt_key := "G"
 var _held_prompt := ""
 var _held_prompt_key := "F"
 
@@ -72,6 +74,14 @@ func set_secondary_prompt(text: String, key_text: String = "F") -> void:
 	_refresh_prompt()
 
 
+func set_tertiary_prompt(text: String, key_text: String = "G") -> void:
+	if _tertiary_prompt == text and _tertiary_prompt_key == key_text:
+		return
+	_tertiary_prompt = text
+	_tertiary_prompt_key = key_text
+	_refresh_prompt()
+
+
 func _refresh_prompt() -> void:
 	if not is_instance_valid(_equipment_ui):
 		return
@@ -88,7 +98,9 @@ func _refresh_prompt() -> void:
 		get_interaction_text(),
 		"E",
 		_secondary_prompt,
-		_secondary_prompt_key
+		_secondary_prompt_key,
+		_tertiary_prompt,
+		_tertiary_prompt_key
 	)
 
 
